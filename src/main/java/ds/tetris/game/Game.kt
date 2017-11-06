@@ -20,15 +20,26 @@ class Game {
 
     private lateinit var view: MainView
     private lateinit var board: Board
+    private lateinit var score: Score
 
     private var isStarted: Boolean = false
-    private var stepDelay = 500L
+    private val BASE_DELAY = 500L
 
     fun start(view: MainView) {
-        this.view = view
-        board = Board(view, randomFigure())
         !isStarted || return
         isStarted = true
+        this.view = view
+        view.clearArea()
+
+        score = Score {
+            view.score = score.score
+            view.level = score.level
+            if (score.shouldLevelUp)
+                score.awardLevelUp()
+        }
+        score.awardStart()
+
+        board = Board(view, randomFigure())
         startFall()
     }
 
@@ -37,18 +48,29 @@ class Game {
             var falling = true
             board.drawFigure()
             while (falling) {
-                delay(stepDelay)
+                delay(calculateDelay())
                 falling = board.moveFigure(Direction.DOWN)
             }
             if (gameOver()) {
+                isStarted = false
                 coroutineContext.cancel()
             } else {
                 board.fixFigure()
+
+                val lines = board.getFilledLinesIndices()
+                if (lines.isNotEmpty()) {
+                    board.wipeLines(lines)
+                    view.wipeLines(lines)
+                    score.awardLinesWipe(lines.size)
+                }
+
                 board.currentFigure = randomFigure()
             }
         }
         view.gameOver()
     }
+
+    private fun calculateDelay() = (BASE_DELAY - score.level * 30).coerceAtLeast(1)
 
     private fun gameOver(): Boolean = board.currentFigure.position.y <= 0
 
@@ -62,18 +84,21 @@ class Game {
 
 
     fun onLeftPressed() {
-        board.moveFigure(Direction.LEFT)
+        if (isStarted) board.moveFigure(Direction.LEFT)
     }
 
     fun onRightPressed() {
-        board.moveFigure(Direction.RIGHT)
+        if (isStarted) board.moveFigure(Direction.RIGHT)
     }
 
     fun onUpPressed() {
-        board.rotateFigure()
+        if (isStarted) board.rotateFigure()
     }
 
     fun onDownPressed() {
-        board.moveFigure(Direction.DOWN)
+        if (isStarted) {
+            if (board.moveFigure(Direction.DOWN))
+                score.awardSpeedUp()
+        }
     }
 }

@@ -1,21 +1,16 @@
 package ds.tetris.game
 
 import ds.tetris.game.figures.Point
+import java.util.Arrays
 
 interface Matrix<T> /*: Iterable<Point>*/ {
 
     val array: Array<Array<T>>
     val width: Int get() = array[0].size
+    val height: Int get() = array.size
 
-    // todo
-    fun rotate() {
-        for (r in 0 until array.size) {
-            val row = array[r]
-            for (c in 0 until row.size) {
+    fun rotate(): Matrix<T>
 
-            }
-        }
-    }
 
     operator fun get(row: Int, column: Int): T = array[row][column]
     operator fun get(p: Point): T = array[p.y][p.x]
@@ -24,7 +19,22 @@ interface Matrix<T> /*: Iterable<Point>*/ {
     }
 }
 
-class BitMatrix private constructor(override val array: Array<Array<Boolean>>) : Matrix<Boolean> {
+class BitMatrix(override val array: Array<Array<Boolean>>) : Matrix<Boolean> {
+
+    /**
+     * @return new instance of rotated Matrix
+     */
+    override fun rotate(): BitMatrix {
+        val copy = Arrays.copyOf(array.map { Arrays.copyOf(it, it.size) }.toTypedArray(), array.size)
+
+        for (r in 0 until array.size) {
+            val row = array[r]
+            for (c in 0 until row.size) {
+                copy[r][c] = array[row.size - c - 1][r]
+            }
+        }
+        return BitMatrix(copy)
+    }
 
     override fun toString(): String {
         return array.joinToString("") {

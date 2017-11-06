@@ -11,8 +11,7 @@ data class Point(val x: Int, val y: Int) {
 
 interface Figure {
     var position: Point
-    var rotation: Int
-    val matrix: BitMatrix
+    var matrix: BitMatrix
     val color: Int
     val points: Sequence<Point>
 
@@ -20,7 +19,6 @@ interface Figure {
 
 abstract class BaseFigure : Figure {
     override lateinit var position: Point
-    override var rotation: Int = 0
     override val color: Int = colors.random
 
     override val points: Sequence<Point> = buildSequence {
@@ -34,6 +32,6 @@ abstract class BaseFigure : Figure {
         }
     }
 
-    override fun toString(): String = matrix.toString()
+    override fun toString(): String = "${javaClass.simpleName}\n$matrix"
 }
 

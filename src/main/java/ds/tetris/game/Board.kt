@@ -8,7 +8,7 @@ import ds.tetris.game.figures.Point
  */
 class Board(private val view: MainView, var currentFigure: Figure) {
 
-    private val area: BitMatrix = BitMatrix(AREA_HEIGHT, AREA_WIDTH) { x, y -> false }
+    private var area: BitMatrix = BitMatrix(AREA_HEIGHT, AREA_WIDTH) { x, y -> false }
 
     fun drawFigure() = currentFigure
         .points
@@ -45,13 +45,38 @@ class Board(private val view: MainView, var currentFigure: Figure) {
     private fun outOfArea(p: Point): Boolean = p.x >= AREA_WIDTH || p.x < 0 || p.y >= AREA_HEIGHT || p.y < 0
 
     fun rotateFigure() {
-        // todo
+        val rotatedMatrix = currentFigure.matrix.rotate()
+        val oldMatrix = currentFigure.matrix
+        currentFigure.matrix = rotatedMatrix
+        print(rotatedMatrix)
+        if (currentFigure.points.all { !area[it] }) {
+            currentFigure.matrix = oldMatrix
+            clearFigure()
+            currentFigure.matrix = rotatedMatrix
+            drawFigure()
+        } else {
+            currentFigure.matrix = oldMatrix
+        }
+
+
     }
 
     fun fixFigure() {
         currentFigure.points.forEach {
             area[it] = true
         }
-        println("Area:\n$area")
+    }
+
+    fun getFilledLinesIndices(): List<Int> = area.array
+        .mapIndexed { i, row -> i to row }
+        .filter { it.second.all { it } }
+        .map { it.first }
+
+    fun wipeLines(lines: List<Int>) {
+        val cropped = area.array.filter { !it.all { it } }.toMutableList()
+        repeat(lines.size) {
+            cropped.add(0, Array(AREA_WIDTH) { false })
+        }
+        area = BitMatrix(cropped.toTypedArray())
     }
 }

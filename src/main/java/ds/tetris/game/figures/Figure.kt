@@ -5,7 +5,9 @@ import ds.tetris.game.colors
 import ds.tetris.game.random
 import kotlin.coroutines.experimental.buildSequence
 
-data class Point(val x: Int, val y: Int)
+data class Point(val x: Int, val y: Int) {
+    operator fun plus(other: Point): Point = Point(x + other.x, y + other.y)
+}
 
 interface Figure {
     var position: Point
@@ -32,10 +34,6 @@ abstract class BaseFigure : Figure {
         }
     }
 
-    override fun toString(): String {
-        return matrix.array.joinToString("") {
-            it.map { if (it) '■' else '·' }.joinToString("") + "\n"
-        }
-    }
+    override fun toString(): String = matrix.toString()
 }
 

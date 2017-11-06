@@ -1,6 +1,7 @@
 package ds.tetris.game
 
 import ds.tetris.game.figures.*
+import kotlinx.coroutines.experimental.cancel
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -25,28 +26,37 @@ class Game {
 
     fun start(view: MainView) {
         this.view = view
-        board = Board(view,randomFigure())
+        board = Board(view, randomFigure())
         !isStarted || return
-
         isStarted = true
-        println(board.currentFigure)
         startFall()
     }
 
     private fun startFall() = launch(JavaFx) {
-        var falling = true
-        while (falling) {
+        while (isActive) {
+            var falling = true
             board.drawFigure()
-            delay(stepDelay)
-            falling = board.moveFigure(Direction.DOWN)
-
+            while (falling) {
+                delay(stepDelay)
+                falling = board.moveFigure(Direction.DOWN)
+            }
+            if (gameOver()) {
+                coroutineContext.cancel()
+            } else {
+                board.fixFigure()
+                board.currentFigure = randomFigure()
+            }
         }
+        view.gameOver()
     }
+
+    private fun gameOver(): Boolean = board.currentFigure.position.y <= 0
 
     private fun randomFigure(): Figure {
         val cls = figures.random
         val figure = cls.newInstance()
         figure.position = Point((AREA_WIDTH - figure.matrix.width) / 2, 0)
+        println(figure)
         return figure
     }
 
@@ -60,11 +70,10 @@ class Game {
     }
 
     fun onUpPressed() {
+        board.rotateFigure()
     }
 
     fun onDownPressed() {
-    }
-
-    fun onDownReleased() {
+        board.moveFigure(Direction.DOWN)
     }
 }

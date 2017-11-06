@@ -5,4 +5,5 @@ interface MainView {
 
     fun drawBlockAt(x: Int, y: Int, color: Int)
     fun clearBlockAt(x: Int, y: Int)
+    fun gameOver()
 }

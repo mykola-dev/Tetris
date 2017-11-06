@@ -10,7 +10,7 @@ import tornadofx.*
 
 class TetrisApp : App(MainViewImpl::class) {
     init {
-        reloadViewsOnFocus()
+        //reloadViewsOnFocus()
         FX.layoutDebuggerShortcut = KeyCodeCombination(KeyCode.F12, KeyCombination.CONTROL_DOWN)
     }
 

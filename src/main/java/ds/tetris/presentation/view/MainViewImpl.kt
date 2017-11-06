@@ -34,7 +34,7 @@ class MainViewImpl : View("Tetris"), MainView, KodeinAware {
     private var canvas: Canvas by singleAssign()
 
     private val keyDownListener: (KeyEvent) -> Unit = {
-        println("Pressed ${it.code}")
+        //println("Pressed ${it.code}")
         when (it.code) {
             KeyCode.LEFT -> game.onLeftPressed()
             KeyCode.RIGHT -> game.onRightPressed()
@@ -45,18 +45,14 @@ class MainViewImpl : View("Tetris"), MainView, KodeinAware {
         }
     }
 
-    private val keyUpListener: (KeyEvent) -> Unit = {
-        println("Released ${it.code}")
-        when (it.code) {
-            KeyCode.DOWN -> game.onDownReleased()
-            else -> {
-            }
+    override fun gameOver() {
+        dialog {
+            label("Game Over")
         }
     }
 
     override val root: Parent = vbox {
         setOnKeyPressed(keyDownListener)
-        setOnKeyReleased(keyUpListener)
 
         hbox(32, Pos.CENTER_LEFT) {
             paddingAll = 16

@@ -11,39 +11,69 @@ class Board(private val view: GameView, var currentFigure: Figure) {
 
     var area: BitMatrix = BitMatrix(AREA_HEIGHT, AREA_WIDTH) { x, y -> false }
 
-    fun drawFigure() = currentFigure
-        .points
-        .forEach {
-            view.drawBlockAt(it.x, it.y, currentFigure.color)
-        }
+    fun drawFigure() {
+        with(currentFigure) {
+            if (ghost == null) {
+                // find ghost
+                for (i in 0 until AREA_HEIGHT - position.y) {
+                    val movement = Point(0, i)
+                    if (!canMove(movement, currentFigure)) {
+                        ghost = clone()
+                        ghost!!.position = Point(position.x, position.y + i - 1)
+                        println("new ghost: ${ghost!!.position}")
+                        break
+                    }
+                }
+            }
 
-    private fun clearFigure() = currentFigure
-        .points
-        .forEach {
-            view.clearBlockAt(it.x, it.y)
+            points.forEach {
+                view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.FILL)
+            }
+            ghost?.points?.forEach {
+                view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.STROKE)
+            }
         }
+    }
+
+    private fun clearFigure(figure: Figure) {
+        figure
+            .points
+            .forEach {
+                view.clearBlockAt(it.x, it.y)
+
+            }
+        figure
+            .ghost
+            ?.points
+            ?.forEach {
+                view.clearBlockAt(it.x, it.y)
+            }
+    }
 
     /**
      * @return true if success
      */
-    fun moveFigure(dir: Direction): Boolean {
-        canMove(dir) || return false
-        clearFigure()
-        with(currentFigure) {
-            position = Point(position.x + dir.movement.x, position.y + dir.movement.y)
-        }
+    fun moveFigure(movement: Point, figure: Figure = currentFigure): Boolean {
+        canMove(movement, figure) || return false
+        clearFigure(figure)
+
+        // invalidate ghost
+        if (movement.x != 0)
+            figure.ghost = null
+
+        figure.position += movement
         drawFigure()
         return true
     }
 
-    private fun canMove(dir: Direction): Boolean = currentFigure
+    private fun canMove(movement: Point, figure: Figure): Boolean = figure
         .points
         .all {
-            val nextPoint = it + dir.movement
-            !outOfArea(nextPoint) && !area[nextPoint]
+            val nextPoint = it + movement
+            !nextPoint.outOfArea() && !area[nextPoint]
         }
 
-    private fun outOfArea(p: Point): Boolean = p.x >= AREA_WIDTH || p.x < 0 || p.y >= AREA_HEIGHT || p.y < 0
+    private fun Point.outOfArea(): Boolean = x >= AREA_WIDTH || x < 0 || y >= AREA_HEIGHT || y < 0
 
     fun rotateFigure() {
         val newFigure = currentFigure.clone().apply {
@@ -62,17 +92,18 @@ class Board(private val view: GameView, var currentFigure: Figure) {
 
             // try to fix unexpected collisions
             if (!points.all { !area[it] }) {
-                if (canMove(RIGHT))
+                if (canMove(RIGHT.movement, this))
                     position += RIGHT.movement
-                else if (canMove(LEFT))
+                else if (canMove(LEFT.movement, this))
                     position += LEFT.movement
             }
 
         }
 
         if (newFigure.points.all { !area[it] }) {
-            clearFigure()
+            clearFigure(currentFigure)
             currentFigure = newFigure
+            currentFigure.ghost = null
             drawFigure()
         }
     }

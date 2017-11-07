@@ -32,5 +32,5 @@ class Score(private val callback: () -> Unit) {
         callback()
     }
 
-    val shouldLevelUp: Boolean get() = score / level > 5000
+    val shouldLevelUp: Boolean get() = score / level > 2500
 }

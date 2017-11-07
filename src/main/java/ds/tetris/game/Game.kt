@@ -1,5 +1,6 @@
 package ds.tetris.game
 
+import ds.tetris.game.Direction.*
 import ds.tetris.game.figures.*
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.cancel
@@ -72,7 +73,7 @@ class Game {
                 for (c in 0 until row.size) {
                     val item = row[c]
                     if (item)
-                        view.drawBlockAt(c, r, 0xffffff)
+                        view.drawBlockAt(c, r, 0xffffff, PaintStyle.STROKE)
                 }
             }
         }
@@ -84,7 +85,7 @@ class Game {
             board.drawFigure()
             while (falling) {
                 delay(calculateDelay())
-                falling = board.moveFigure(Direction.DOWN)
+                falling = board.moveFigure(DOWN.movement)
             }
             if (gameOver()) {
                 isStarted = false
@@ -105,7 +106,7 @@ class Game {
         view.gameOver()
     }
 
-    private fun calculateDelay() = (BASE_DELAY - score.level * 30).coerceAtLeast(1)
+    private fun calculateDelay() = (BASE_DELAY - score.level * 50).coerceAtLeast(1)
 
     private fun gameOver(): Boolean = board.currentFigure.position.y <= 0
 
@@ -119,11 +120,11 @@ class Game {
 
 
     fun onLeftPressed() {
-        if (isStarted) board.moveFigure(Direction.LEFT)
+        if (isStarted) board.moveFigure(LEFT.movement)
     }
 
     fun onRightPressed() {
-        if (isStarted) board.moveFigure(Direction.RIGHT)
+        if (isStarted) board.moveFigure(RIGHT.movement)
     }
 
     fun onUpPressed() {
@@ -132,7 +133,7 @@ class Game {
 
     fun onDownPressed() {
         if (isStarted) {
-            if (board.moveFigure(Direction.DOWN))
+            if (board.moveFigure(DOWN.movement))
                 score.awardSpeedUp()
         }
     }

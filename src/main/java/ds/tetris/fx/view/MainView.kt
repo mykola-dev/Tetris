@@ -4,10 +4,7 @@ import ds.tetris.coroutines.coroutineContext
 import ds.tetris.fx.util.clearRect
 import ds.tetris.fx.util.drawImage
 import ds.tetris.fx.util.toColor
-import ds.tetris.game.AREA_HEIGHT
-import ds.tetris.game.AREA_WIDTH
-import ds.tetris.game.Game
-import ds.tetris.game.GameView
+import ds.tetris.game.*
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.geometry.Pos
 import javafx.geometry.Rectangle2D
@@ -110,7 +107,7 @@ class MainView : View("Tetris"), GameView {
                     val height = size * BRICK_SIZE
                     println("area start=$startline size=$size with offset $offset")
                     val image = WritableImage(Math.rint(dpi * canvas.width).toInt(), Math.rint(dpi * height).toInt())
-                    var viewport = Rectangle2D(0.0, Math.rint(dpi *startline * BRICK_SIZE), canvas.width, height)
+                    var viewport = Rectangle2D(0.0, Math.rint(dpi * startline * BRICK_SIZE), canvas.width, height)
                     params.viewport = viewport
                     canvas.snapshot(params, image)
                     for (j in 0..offset.toInt() step (offset / 10).toInt()) {
@@ -133,18 +130,34 @@ class MainView : View("Tetris"), GameView {
         return trueHorizontalLines / scaledHorizontalLines
     }
 
-    override fun drawBlockAt(x: Int, y: Int, color: Int) {
+    override fun drawBlockAt(x: Int, y: Int, color: Int, style: PaintStyle) {
         val radius = 8.0
-        val gap = 1
+        val gap = 2
         with(canvas.graphicsContext2D) {
-            fill = color.toColor()
-            fillRoundRect(
-                x * BRICK_SIZE + gap,
-                y * BRICK_SIZE + gap,
-                BRICK_SIZE - gap,
-                BRICK_SIZE - gap,
-                radius, radius
-            )
+            when (style) {
+                PaintStyle.FILL -> {
+                    fill = color.toColor()
+                    stroke = Color.TRANSPARENT
+                    fillRoundRect(
+                        x * BRICK_SIZE + gap,
+                        y * BRICK_SIZE + gap,
+                        BRICK_SIZE - gap * 2,
+                        BRICK_SIZE - gap * 2,
+                        radius, radius
+                    )
+                }
+                PaintStyle.STROKE -> {
+                    stroke = color.toColor()
+                    fill = Color.TRANSPARENT
+                    strokeRoundRect(
+                        x * BRICK_SIZE + gap,
+                        y * BRICK_SIZE + gap,
+                        BRICK_SIZE - gap * 2,
+                        BRICK_SIZE - gap * 2,
+                        radius, radius
+                    )
+                }
+            }
         }
     }
 

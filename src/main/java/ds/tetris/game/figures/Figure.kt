@@ -12,14 +12,23 @@ data class Point(val x: Int, val y: Int) {
 interface Figure {
     var position: Point
     var matrix: BitMatrix
-    val color: Int
+    var color: Int
     val points: Sequence<Point>
 
+    fun clone(): Figure = javaClass.newInstance().also {
+        it.matrix = matrix
+        it.position = position
+        it.color = color
+        it.matrix = matrix.clone()
+    }
+
+    fun rotate() {
+        matrix.rotate()
+    }
 }
 
-abstract class BaseFigure : Figure {
+abstract class BaseFigure(override var color: Int = colors.random) : Figure {
     override lateinit var position: Point
-    override val color: Int = colors.random
 
     override val points: Sequence<Point> = buildSequence {
         for (r in 0 until matrix.array.size) {

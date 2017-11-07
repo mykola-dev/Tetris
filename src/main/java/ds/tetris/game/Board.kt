@@ -1,5 +1,6 @@
 package ds.tetris.game
 
+import ds.tetris.game.Direction.*
 import ds.tetris.game.figures.Figure
 import ds.tetris.game.figures.Point
 
@@ -45,20 +46,35 @@ class Board(private val view: MainView, var currentFigure: Figure) {
     private fun outOfArea(p: Point): Boolean = p.x >= AREA_WIDTH || p.x < 0 || p.y >= AREA_HEIGHT || p.y < 0
 
     fun rotateFigure() {
-        val rotatedMatrix = currentFigure.matrix.rotate()
-        val oldMatrix = currentFigure.matrix
-        currentFigure.matrix = rotatedMatrix
-        print(rotatedMatrix)
-        if (currentFigure.points.all { !area[it] }) {
-            currentFigure.matrix = oldMatrix
-            clearFigure()
-            currentFigure.matrix = rotatedMatrix
-            drawFigure()
-        } else {
-            currentFigure.matrix = oldMatrix
+        val newFigure = currentFigure.clone().apply {
+            rotate()
+
+            // edge cases
+            while (!points.all { it.x >= 0 }) {
+                position += RIGHT.movement
+            }
+            while (!points.all { it.x < AREA_WIDTH }) {
+                position += LEFT.movement
+            }
+            while (!points.all { it.y < AREA_HEIGHT }) {
+                position += UP.movement
+            }
+
+            // try to fix unexpected collisions
+            if (!points.all { !area[it] }) {
+                if (canMove(RIGHT))
+                    position += RIGHT.movement
+                else if (canMove(LEFT))
+                    position += LEFT.movement
+            }
+
         }
 
-
+        if (newFigure.points.all { !area[it] }) {
+            clearFigure()
+            currentFigure = newFigure
+            drawFigure()
+        }
     }
 
     fun fixFigure() {

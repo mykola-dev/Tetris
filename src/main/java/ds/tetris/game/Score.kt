@@ -17,7 +17,13 @@ class Score(private val callback: () -> Unit) {
     }
 
     fun awardLinesWipe(count: Int) {
-        score += 10 * count * (1 + count / 2f).toInt()
+        score += when (count) {
+            1 -> 100
+            2 -> 250
+            3 -> 500
+            4 -> 800
+            else -> 0
+        }
         callback()
     }
 
@@ -26,5 +32,5 @@ class Score(private val callback: () -> Unit) {
         callback()
     }
 
-    val shouldLevelUp: Boolean get() = score / level > 1000
+    val shouldLevelUp: Boolean get() = score / level > 5000
 }

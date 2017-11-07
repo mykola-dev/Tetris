@@ -6,6 +6,8 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 
+private const val BASE_DELAY = 800L
+
 class Game {
 
     private val figures = arrayOf(
@@ -23,7 +25,6 @@ class Game {
     private lateinit var score: Score
 
     private var isStarted: Boolean = false
-    private val BASE_DELAY = 500L
 
     fun start(view: MainView) {
         !isStarted || return

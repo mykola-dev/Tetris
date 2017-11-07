@@ -9,8 +9,10 @@ interface Matrix<T> /*: Iterable<Point>*/ {
     val width: Int get() = array[0].size
     val height: Int get() = array.size
 
-    fun rotate(): Matrix<T>
-
+    /**
+     * @return new instance of rotated Matrix
+     */
+    fun rotate()
 
     operator fun get(row: Int, column: Int): T = array[row][column]
     operator fun get(p: Point): T = array[p.y][p.x]
@@ -21,20 +23,18 @@ interface Matrix<T> /*: Iterable<Point>*/ {
 
 class BitMatrix(override val array: Array<Array<Boolean>>) : Matrix<Boolean> {
 
-    /**
-     * @return new instance of rotated Matrix
-     */
-    override fun rotate(): BitMatrix {
-        val copy = Arrays.copyOf(array.map { Arrays.copyOf(it, it.size) }.toTypedArray(), array.size)
+    override fun rotate() {
+        val copy = copyArray()
 
         for (r in 0 until array.size) {
             val row = array[r]
             for (c in 0 until row.size) {
-                copy[r][c] = array[row.size - c - 1][r]
+                array[r][c] = copy[row.size - c - 1][r]
             }
         }
-        return BitMatrix(copy)
     }
+
+    private fun copyArray()= Arrays.copyOf(array.map { Arrays.copyOf(it, it.size) }.toTypedArray(), array.size)
 
     override fun toString(): String {
         return array.joinToString("") {
@@ -55,6 +55,9 @@ class BitMatrix(override val array: Array<Array<Boolean>>) : Matrix<Boolean> {
             return BitMatrix(array)
         }
     }
+
+    fun clone(): BitMatrix = BitMatrix(copyArray())
+
 }
 
 class MatrixBuilder {

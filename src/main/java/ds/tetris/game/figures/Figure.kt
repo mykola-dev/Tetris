@@ -28,7 +28,7 @@ interface Figure {
 }
 
 abstract class BaseFigure(override var color: Int = colors.random) : Figure {
-    override lateinit var position: Point
+    override var position: Point = Point(0, 0)
 
     override val points: Sequence<Point> = buildSequence {
         for (r in 0 until matrix.array.size) {
@@ -43,4 +43,3 @@ abstract class BaseFigure(override var color: Int = colors.random) : Figure {
 
     override fun toString(): String = "${javaClass.simpleName}\n$matrix"
 }
-

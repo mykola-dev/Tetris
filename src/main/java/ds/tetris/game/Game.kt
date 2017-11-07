@@ -1,6 +1,7 @@
 package ds.tetris.game
 
 import ds.tetris.game.figures.*
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.cancel
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -12,6 +13,7 @@ class Game {
 
     private val figures = arrayOf(
         IFigure::class.java,
+        IFigure::class.java,    // higher chance
         LFigure::class.java,
         LFlippedFigure::class.java,
         SFigure::class.java,
@@ -20,14 +22,19 @@ class Game {
         TFigure::class.java
     )
 
-    private lateinit var view: MainView
+    private lateinit var view: GameView
     private lateinit var board: Board
     private lateinit var score: Score
 
     private var isStarted: Boolean = false
 
-    fun start(view: MainView) {
-        !isStarted || return
+    private var stopper: Job = Job()
+
+    fun start(view: GameView) {
+        //!isStarted || return
+        stopper.cancel()
+        stopper = Job()
+
         isStarted = true
         this.view = view
         view.clearArea()
@@ -40,11 +47,38 @@ class Game {
         }
         score.awardStart()
 
-        board = Board(view, randomFigure())
+        board = Board(view, IFigure())
+        debug()
         startFall()
     }
 
-    private fun startFall() = launch(JavaFx) {
+    private fun debug() {
+        with(board) {
+            for (i in 0 until AREA_WIDTH - 1) {
+                area[19, i] = true
+                area[18, i] = true
+                area[17, i] = true
+                area[16, i] = true
+                area[15, i] = true
+                area[14, i] = true
+                area[13, i] = true
+                area[12, i] = true
+                area[11, i] = true
+                area[10, i] = true
+            }
+            area[17, 5] = false
+            for (r in 0 until area.array.size) {
+                val row = area.array[r]
+                for (c in 0 until row.size) {
+                    val item = row[c]
+                    if (item)
+                        view.drawBlockAt(c, r, 0xffffff)
+                }
+            }
+        }
+    }
+
+    private fun startFall() = launch(JavaFx + stopper) {
         while (isActive) {
             var falling = true
             board.drawFigure()

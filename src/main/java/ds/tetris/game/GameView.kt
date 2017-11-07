@@ -1,6 +1,6 @@
 package ds.tetris.game
 
-interface MainView {
+interface GameView {
     var score: Int
     var level: Int
 

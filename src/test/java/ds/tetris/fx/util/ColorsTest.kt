@@ -1,6 +1,6 @@
-package ds.tetris.util
+package ds.tetris.fx.util
 
-import ds.tetris.util.toColor
+import ds.tetris.fx.util.toColor
 import org.junit.Test
 
 

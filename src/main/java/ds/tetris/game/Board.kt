@@ -7,9 +7,9 @@ import ds.tetris.game.figures.Point
 /**
  * This class represents the game area state and helper methods to manipulate with state
  */
-class Board(private val view: MainView, var currentFigure: Figure) {
+class Board(private val view: GameView, var currentFigure: Figure) {
 
-    private var area: BitMatrix = BitMatrix(AREA_HEIGHT, AREA_WIDTH) { x, y -> false }
+    var area: BitMatrix = BitMatrix(AREA_HEIGHT, AREA_WIDTH) { x, y -> false }
 
     fun drawFigure() = currentFigure
         .points

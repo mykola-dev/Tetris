@@ -1,4 +1,4 @@
-package ds.tetris.util
+package ds.tetris.fx.util
 
 import javafx.scene.paint.Color
 

@@ -3,7 +3,7 @@ package ds.tetris.game
 import ds.tetris.game.figures.Point
 import java.util.Arrays
 
-interface Matrix<T> /*: Iterable<Point>*/ {
+interface Matrix<T> {
 
     val array: Array<Array<T>>
     val width: Int get() = array[0].size
@@ -15,10 +15,15 @@ interface Matrix<T> /*: Iterable<Point>*/ {
     fun rotate()
 
     operator fun get(row: Int, column: Int): T = array[row][column]
-    operator fun get(p: Point): T = array[p.y][p.x]
-    operator fun set(p: Point, value: T) {
-        array[p.y][p.x] = value
+    operator fun set(row: Int, column: Int, value: T) {
+        array[row][column] = value
     }
+
+    operator fun get(p: Point): T = this[p.y, p.x]
+    operator fun set(p: Point, value: T) {
+        this[p.y, p.x] = value
+    }
+
 }
 
 class BitMatrix(override val array: Array<Array<Boolean>>) : Matrix<Boolean> {
@@ -34,7 +39,7 @@ class BitMatrix(override val array: Array<Array<Boolean>>) : Matrix<Boolean> {
         }
     }
 
-    private fun copyArray()= Arrays.copyOf(array.map { Arrays.copyOf(it, it.size) }.toTypedArray(), array.size)
+    private fun copyArray() = Arrays.copyOf(array.map { Arrays.copyOf(it, it.size) }.toTypedArray(), array.size)
 
     override fun toString(): String {
         return array.joinToString("") {

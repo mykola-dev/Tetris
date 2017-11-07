@@ -47,8 +47,8 @@ class Game {
         }
         score.awardStart()
 
-        board = Board(view, IFigure())
-        debug()
+        board = Board(view, randomFigure())
+        //debug()
         startFall()
     }
 

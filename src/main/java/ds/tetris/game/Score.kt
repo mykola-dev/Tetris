@@ -21,7 +21,7 @@ class Score(private val callback: () -> Unit) {
             1 -> 100
             2 -> 250
             3 -> 500
-            4 -> 800
+            4 -> 1000
             else -> 0
         }
         callback()

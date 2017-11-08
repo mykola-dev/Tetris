@@ -5,23 +5,23 @@ import ds.tetris.game.figures.*
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.cancel
 import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
+import kotlin.coroutines.experimental.CoroutineContext
 
 private const val BASE_DELAY = 800L
 
-class Game {
+private val figures = arrayOf(
+    IFigure::class.java,
+    IFigure::class.java,
+    LFigure::class.java,
+    LFlippedFigure::class.java,
+    SFigure::class.java,
+    SFlippedFigure::class.java,
+    SquareFigure::class.java,
+    TFigure::class.java
+)
 
-    private val figures = arrayOf(
-        IFigure::class.java,
-        IFigure::class.java,    // higher chance
-        LFigure::class.java,
-        LFlippedFigure::class.java,
-        SFigure::class.java,
-        SFlippedFigure::class.java,
-        SquareFigure::class.java,
-        TFigure::class.java
-    )
+class Game(private val uiCoroutineContext: CoroutineContext) {
 
     private lateinit var view: GameView
     private lateinit var board: Board
@@ -30,6 +30,16 @@ class Game {
     private var isStarted: Boolean = false
 
     private var stopper: Job = Job()
+    private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(uiCoroutineContext) {
+        if (board.moveFigure(DOWN.movement))
+            score.awardSpeedUp()
+    }
+    private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(uiCoroutineContext, 100) {
+        board.moveFigure(LEFT.movement)
+    }
+    private var rightKeyCoroutine: KeyCoroutine = KeyCoroutine(uiCoroutineContext, 100) {
+        board.moveFigure(RIGHT.movement)
+    }
 
     fun start(view: GameView) {
         //!isStarted || return
@@ -79,7 +89,7 @@ class Game {
         }
     }
 
-    private fun startFall() = launch(JavaFx + stopper) {
+    private fun startFall() = launch(uiCoroutineContext + stopper) {
         while (isActive) {
             var falling = true
             board.drawFigure()
@@ -120,11 +130,11 @@ class Game {
 
 
     fun onLeftPressed() {
-        if (isStarted) board.moveFigure(LEFT.movement)
+        if (isStarted) leftKeyCoroutine.start()
     }
 
     fun onRightPressed() {
-        if (isStarted) board.moveFigure(RIGHT.movement)
+        if (isStarted) rightKeyCoroutine.start()
     }
 
     fun onUpPressed() {
@@ -132,9 +142,10 @@ class Game {
     }
 
     fun onDownPressed() {
-        if (isStarted) {
-            if (board.moveFigure(DOWN.movement))
-                score.awardSpeedUp()
-        }
+        if (isStarted) downKeyCoroutine.start()
     }
+
+    fun onDownReleased() = downKeyCoroutine.stop()
+    fun onLeftReleased() = leftKeyCoroutine.stop()
+    fun onRightReleased() = rightKeyCoroutine.stop()
 }

@@ -20,17 +20,17 @@ class Board(private val view: GameView, var currentFigure: Figure) {
                     if (!canMove(movement, currentFigure)) {
                         ghost = clone()
                         ghost!!.position = Point(position.x, position.y + i - 1)
-                        println("new ghost: ${ghost!!.position}")
                         break
                     }
                 }
             }
 
-            points.forEach {
-                view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.FILL)
-            }
             ghost?.points?.forEach {
                 view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.STROKE)
+            }
+
+            points.forEach {
+                view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.FILL)
             }
         }
     }

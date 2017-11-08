@@ -10,3 +10,8 @@ interface GameView {
     fun clearArea()
     suspend fun wipeLines(lines: List<Int>)
 }
+
+interface NextFigureView {
+    fun drawBlockAt(x: Int, y: Int, color: Int, style: PaintStyle)
+    fun clearArea()
+}

@@ -19,6 +19,7 @@ import javafx.scene.transform.Transform
 import javafx.stage.Screen
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 import java.awt.Toolkit
@@ -29,7 +30,7 @@ class MainView : View("Tetris"), GameView {
 
     private val bgColor = Color.BLACK
 
-    val game: Game = Game()
+    val game: Game = Game(JavaFx)
     private val scoreProperty = SimpleIntegerProperty()
     private val levelProperty = SimpleIntegerProperty()
     override var score: Int by scoreProperty
@@ -47,9 +48,19 @@ class MainView : View("Tetris"), GameView {
             }
         }
     }
+    private val keyUpListener: (KeyEvent) -> Unit = {
+        when (it.code) {
+            KeyCode.DOWN -> game.onDownReleased()
+            KeyCode.LEFT -> game.onLeftReleased()
+            KeyCode.RIGHT -> game.onRightReleased()
+            else -> {
+            }
+        }
+    }
 
     override val root: Parent = vbox {
         setOnKeyPressed(keyDownListener)
+        setOnKeyReleased(keyUpListener)
 
         hbox(32, Pos.CENTER_LEFT) {
             paddingAll = 16
@@ -147,7 +158,7 @@ class MainView : View("Tetris"), GameView {
                     )
                 }
                 PaintStyle.STROKE -> {
-                    stroke = color.toColor()
+                    stroke = color.toColor().darker()
                     fill = Color.TRANSPARENT
                     strokeRoundRect(
                         x * BRICK_SIZE + gap,

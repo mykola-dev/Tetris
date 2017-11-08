@@ -1,8 +1,14 @@
 package ds.tetris.game
 
-class Score(private val callback: () -> Unit) {
+class Score(private val callback: Score.() -> Unit) {
 
     var score: Int = 0
+        set(value) {
+            field = value
+            if (field / level > 2500)
+                awardLevelUp()
+        }
+
     var level: Int = 0
 
     fun awardSpeedUp() {
@@ -10,9 +16,9 @@ class Score(private val callback: () -> Unit) {
         callback()
     }
 
-    fun awardLevelUp() {
-        score += 100
+    private fun awardLevelUp() {
         level++
+        score += 100
         callback()
     }
 
@@ -32,5 +38,4 @@ class Score(private val callback: () -> Unit) {
         callback()
     }
 
-    val shouldLevelUp: Boolean get() = score / level > 2500
 }

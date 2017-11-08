@@ -6,6 +6,7 @@ import ds.tetris.fx.util.drawImage
 import ds.tetris.fx.util.toColor
 import ds.tetris.game.*
 import javafx.beans.property.SimpleIntegerProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.geometry.Rectangle2D
 import javafx.scene.Parent
@@ -30,9 +31,12 @@ class MainView : View("Tetris"), GameView {
 
     private val bgColor = Color.BLACK
 
-    val game: Game = Game(JavaFx)
+    var game: Game? = null
+
     private val scoreProperty = SimpleIntegerProperty()
     private val levelProperty = SimpleIntegerProperty()
+    private val pauseTitleProperty = SimpleStringProperty("Pause")
+    private val startTitleProperty = SimpleStringProperty("Start")
     override var score: Int by scoreProperty
     override var level: Int by levelProperty
 
@@ -40,45 +44,61 @@ class MainView : View("Tetris"), GameView {
 
     private val keyDownListener: (KeyEvent) -> Unit = {
         when (it.code) {
-            KeyCode.LEFT -> game.onLeftPressed()
-            KeyCode.RIGHT -> game.onRightPressed()
-            KeyCode.UP -> game.onUpPressed()
-            KeyCode.DOWN -> game.onDownPressed()
+            KeyCode.LEFT -> game?.onLeftPressed()
+            KeyCode.RIGHT -> game?.onRightPressed()
+            KeyCode.UP -> game?.onUpPressed()
+            KeyCode.DOWN -> game?.onDownPressed()
             else -> {
             }
         }
     }
     private val keyUpListener: (KeyEvent) -> Unit = {
         when (it.code) {
-            KeyCode.DOWN -> game.onDownReleased()
-            KeyCode.LEFT -> game.onLeftReleased()
-            KeyCode.RIGHT -> game.onRightReleased()
+            KeyCode.DOWN -> game?.onDownReleased()
+            KeyCode.LEFT -> game?.onLeftReleased()
+            KeyCode.RIGHT -> game?.onRightReleased()
             else -> {
             }
         }
     }
 
-    override val root: Parent = vbox {
+    override val root: Parent = hbox {
         setOnKeyPressed(keyDownListener)
         setOnKeyReleased(keyUpListener)
 
-        hbox(32, Pos.CENTER_LEFT) {
-            paddingAll = 16
-            button("Start Game").action {
-                game.start(this@MainView)
-            }
-            label(levelProperty.stringBinding { "Level: $it" }) {
-                useMaxWidth = true
-            }
-            label(scoreProperty.stringBinding { "Score: $it" }) {
-                useMaxWidth = true
-            }
-        }
         stackpane {
             style {
                 backgroundColor += bgColor
             }
             canvas = canvas(BRICK_SIZE * AREA_WIDTH, BRICK_SIZE * AREA_HEIGHT)
+        }
+
+        vbox(32, Pos.CENTER) {
+            paddingAll = 16
+            minWidth = 200.0
+            button(startTitleProperty) {
+                action {
+                    game?.stop()
+                    game = Game(this@MainView, JavaFx)
+                    game?.start()
+                    startTitleProperty.set("Restart")
+                }
+            }
+            button(pauseTitleProperty) {
+                action {
+                    game?.pause()
+                    if (game?.isPaused == true)
+                        pauseTitleProperty.set("Resume")
+                    else
+                        pauseTitleProperty.set("Pause")
+                }
+            }
+
+            label(levelProperty.stringBinding { "Level: $it" })
+            label(scoreProperty.stringBinding { "Score: $it" })
+            style {
+                fontSize = 20.px
+            }
         }
     }
 
@@ -199,8 +219,12 @@ class MainView : View("Tetris"), GameView {
             }
             hbox(alignment = Pos.CENTER_RIGHT) {
                 paddingTop = 32
-                button("OK").action {
-                    close()
+                button("OK") {
+                    minWidth = 100.0
+                    action {
+                        close()
+                    }
+
                 }
             }
         }

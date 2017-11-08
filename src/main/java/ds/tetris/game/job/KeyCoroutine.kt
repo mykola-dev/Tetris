@@ -5,7 +5,7 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import kotlin.coroutines.experimental.CoroutineContext
 
-private const val DEFAULT_DELAY: Long = 30
+private const val DEFAULT_DELAY: Long = 40
 
 class KeyCoroutine(
     private val contextProvider: () -> CoroutineContext,

@@ -23,15 +23,20 @@ private val figures = arrayOf(
     TFigure::class.java
 )
 
-class Game(private val uiCoroutineContext: CoroutineContext) {
+class Game(
+    private val view: GameView,
+    private val uiCoroutineContext: CoroutineContext
+) {
 
-    private lateinit var view: GameView
-    private lateinit var board: Board
-    private lateinit var score: Score
+    private val board: Board = Board(view, randomFigure())
+    private val score: Score = Score {
+        view.score = score
+        view.level = level
+    }
     private lateinit var gameActor: ActorJob<Unit>
 
     private var isStarted: Boolean = false
-    private var isPaused: Boolean = false   // todo
+    var isPaused: Boolean = false   // todo
 
     private var stopper: Job = Job()
 
@@ -49,26 +54,26 @@ class Game(private val uiCoroutineContext: CoroutineContext) {
         board.moveFigure(RIGHT.movement)
     }
 
-    fun start(view: GameView) {
-        stopper.cancel()
-        stopper = Job()
-
+    fun start() {
+        if (isStarted) error("Can't start twice")
         isStarted = true
-        this.view = view
+
         view.clearArea()
 
-        score = Score {
-            view.score = score.score
-            view.level = score.level
-            if (score.shouldLevelUp)
-                score.awardLevelUp()
-        }
         score.awardStart()
-
-        board = Board(view, randomFigure())
 
         gameActor = provideActor()
         gameActor.offer(Unit)
+    }
+
+    fun stop() {
+        stopper.cancel()
+    }
+
+    fun pause() {
+        isPaused = !isPaused
+        if (!isPaused)
+            gameActor.offer(Unit)
     }
 
     private fun provideActor(): ActorJob<Unit> = actor(uiContextProvider()) {
@@ -106,7 +111,12 @@ class Game(private val uiCoroutineContext: CoroutineContext) {
         log("actor stopped")
     }
 
-    private fun calculateDelay() = (BASE_DELAY - score.level * 50).coerceAtLeast(1)
+    private fun calculateDelay() = if (!isPaused) {
+        (BASE_DELAY - score.level * 50).coerceAtLeast(1)
+    } else {
+        Long.MAX_VALUE
+    }
+
 
     private fun gameOver(): Boolean = board.currentFigure.position.y <= 0
 
@@ -118,24 +128,12 @@ class Game(private val uiCoroutineContext: CoroutineContext) {
         return figure
     }
 
-
-    fun onLeftPressed() {
-        if (isStarted) leftKeyCoroutine.start()
-    }
-
-    fun onRightPressed() {
-        if (isStarted) rightKeyCoroutine.start()
-    }
-
-    fun onUpPressed() {
-        if (isStarted) board.rotateFigure()
-    }
-
-    fun onDownPressed() {
-        if (isStarted) downKeyCoroutine.start()
-    }
-
+    fun onLeftPressed() = leftKeyCoroutine.start()
+    fun onRightPressed() = rightKeyCoroutine.start()
+    fun onUpPressed() = board.rotateFigure()
+    fun onDownPressed() = downKeyCoroutine.start()
     fun onDownReleased() = downKeyCoroutine.stop()
     fun onLeftReleased() = leftKeyCoroutine.stop()
     fun onRightReleased() = rightKeyCoroutine.stop()
+
 }

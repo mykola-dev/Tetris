@@ -15,7 +15,7 @@ class NextFigure : View(), NextFigureView {
 
     override fun drawBlockAt(x: Int, y: Int, color: Int) {
         val gap = 1.0
-        val radius = 2.0
+        val radius = 4.0
         with(canvas.graphicsContext2D) {
             fill = color.toColor()
             stroke = Color.TRANSPARENT

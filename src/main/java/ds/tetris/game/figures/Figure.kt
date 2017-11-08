@@ -1,6 +1,5 @@
 package ds.tetris.game.figures
 
-import ds.tetris.game.BitMatrix
 import ds.tetris.game.colors
 import ds.tetris.game.random
 import kotlin.coroutines.experimental.buildSequence
@@ -14,7 +13,7 @@ interface Figure {
     var matrix: BitMatrix
     var color: Int
     val points: Sequence<Point>
-    var ghost:Figure?
+    var ghost: Figure?
 
     fun clone(): Figure = javaClass.newInstance().also {
         it.matrix = matrix
@@ -30,7 +29,7 @@ interface Figure {
 
 abstract class BaseFigure(override var color: Int = colors.random) : Figure {
     override var position: Point = Point(0, 0)
-    override var ghost:Figure?=null
+    override var ghost: Figure? = null
 
     override val points: Sequence<Point> = buildSequence {
         for (r in 0 until matrix.array.size) {

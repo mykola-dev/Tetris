@@ -1,6 +1,7 @@
 package ds.tetris.game
 
 import ds.tetris.game.Direction.*
+import ds.tetris.game.figures.BitMatrix
 import ds.tetris.game.figures.Figure
 import ds.tetris.game.figures.Point
 

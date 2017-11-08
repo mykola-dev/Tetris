@@ -1,7 +1,5 @@
 package ds.tetris.game.figures
 
-import ds.tetris.game.BitMatrix
-
 class IFigure : BaseFigure() {
     override var matrix: BitMatrix = BitMatrix {
         +"0100"

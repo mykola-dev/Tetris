@@ -1,6 +1,5 @@
-package ds.tetris.game
+package ds.tetris.game.figures
 
-import ds.tetris.game.figures.Point
 import java.util.Arrays
 
 interface Matrix<T> {

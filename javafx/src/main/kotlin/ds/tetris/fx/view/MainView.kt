@@ -33,7 +33,7 @@ class MainView : View("Tetris"), GameView {
 
     private val nextFigureView: NextFigure by inject()
 
-    var game: Game? = null
+    private var game: Game? = null
 
     private val scoreProperty = SimpleIntegerProperty()
     private val levelProperty = SimpleIntegerProperty()

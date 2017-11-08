@@ -87,6 +87,7 @@ class MainView : View("Tetris"), GameView {
                     game = Game(this@MainView, nextFigureView, JavaFx)
                     game?.start()
                     startTitleProperty.set("Restart")
+                    pauseTitleProperty.set("Pause")
                 }
             }
             button(pauseTitleProperty) {
@@ -114,7 +115,6 @@ class MainView : View("Tetris"), GameView {
         println("dpi=$dpi")
 
         val gc = canvas.graphicsContext2D
-
 
         // fade nicely
         val fadeColor = Color.rgb(0, 0, 0, 0.5)

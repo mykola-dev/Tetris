@@ -35,27 +35,65 @@ class Game(
         view.level = level
     }
     private lateinit var nextFigure: Figure
-    private lateinit var gameActor: ActorJob<Unit>
+
+    private val gameActor: ActorJob<Unit> by lazy {
+        actor<Unit>(uiContextProvider()) {
+            log("actor started")
+            while (isActive) {
+                var falling = true
+                nextFigure = randomFigure(false)
+                drawPreview()
+                board.drawFigure()
+                while (falling) {
+                    falling = select {
+                        onReceive {
+                            board.moveFigure(DOWN.movement)
+                        }
+                        onTimeout(calculateDelay()) {
+                            board.moveFigure(DOWN.movement)
+                        }
+                    }
+                }
+                downKeyCoroutine.stop()
+                if (gameOver()) {
+                    isStarted = false
+                    coroutineContext.cancel()
+                } else {
+                    board.fixFigure()
+
+                    val lines = board.getFilledLinesIndices()
+                    if (lines.isNotEmpty()) {
+                        board.wipeLines(lines)
+                        view.wipeLines(lines)
+                        score.awardLinesWipe(lines.size)
+                    }
+                    nextFigure.position = board.startingPosition(nextFigure)
+                    board.currentFigure = nextFigure
+                }
+            }
+            view.gameOver()
+            log("actor stopped")
+        }
+    }
 
     private var isStarted: Boolean = false
-    var isPaused: Boolean = false   // todo
+    var isPaused: Boolean = false
 
     private var stopper: Job = Job()
 
     private val uiContextProvider = {
         uiCoroutineContext + stopper
     }
-    private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
+    private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider, 30) {
         score.awardSpeedUp()
         gameActor.offer(Unit)
     }
-    private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider, 100) {
+    private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
         board.moveFigure(LEFT.movement)
     }
-    private var rightKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider, 100) {
+    private var rightKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
         board.moveFigure(RIGHT.movement)
     }
-
 
     fun start() {
         if (isStarted) error("Can't start twice")
@@ -67,7 +105,6 @@ class Game(
 
         board.currentFigure = randomFigure()
 
-        gameActor = provideActor()
         gameActor.offer(Unit)
     }
 
@@ -76,46 +113,10 @@ class Game(
     }
 
     fun pause() {
+        gameActor.isActive || return
         isPaused = !isPaused
         if (!isPaused)
             gameActor.offer(Unit)
-    }
-
-    private fun provideActor(): ActorJob<Unit> = actor(uiContextProvider()) {
-        log("actor started")
-        while (isActive) {
-            var falling = true
-            nextFigure = randomFigure(false)
-            drawPreview()
-            board.drawFigure()
-            while (falling) {
-                falling = select {
-                    onReceive {
-                        board.moveFigure(DOWN.movement)
-                    }
-                    onTimeout(calculateDelay()) {
-                        board.moveFigure(DOWN.movement)
-                    }
-                }
-            }
-            if (gameOver()) {
-                isStarted = false
-                coroutineContext.cancel()
-            } else {
-                board.fixFigure()
-
-                val lines = board.getFilledLinesIndices()
-                if (lines.isNotEmpty()) {
-                    board.wipeLines(lines)
-                    view.wipeLines(lines)
-                    score.awardLinesWipe(lines.size)
-                }
-                nextFigure.position = board.startingPosition(nextFigure)
-                board.currentFigure = nextFigure
-            }
-        }
-        view.gameOver()
-        log("actor stopped")
     }
 
     private fun drawPreview() {
@@ -130,7 +131,6 @@ class Game(
     } else {
         Long.MAX_VALUE
     }
-
 
     private fun gameOver(): Boolean = board.currentFigure.position.y <= 0
 

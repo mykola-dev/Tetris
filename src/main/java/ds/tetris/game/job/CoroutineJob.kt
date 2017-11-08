@@ -2,10 +2,9 @@ package ds.tetris.game.job
 
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.Job
-import kotlin.coroutines.experimental.CoroutineContext
 
 @Suppress("MemberVisibilityCanPrivate")
-abstract class CoroutineJob(val context: CoroutineContext) {
+abstract class CoroutineJob {
 
     private var job: Job? = null
 

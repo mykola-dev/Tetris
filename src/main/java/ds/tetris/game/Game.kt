@@ -2,10 +2,12 @@ package ds.tetris.game
 
 import ds.tetris.game.Direction.*
 import ds.tetris.game.figures.*
+import ds.tetris.game.job.KeyCoroutine
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.cancel
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.channels.ActorJob
+import kotlinx.coroutines.experimental.channels.actor
+import kotlinx.coroutines.experimental.selects.select
 import kotlin.coroutines.experimental.CoroutineContext
 
 private const val BASE_DELAY = 800L
@@ -26,23 +28,28 @@ class Game(private val uiCoroutineContext: CoroutineContext) {
     private lateinit var view: GameView
     private lateinit var board: Board
     private lateinit var score: Score
+    private lateinit var gameActor: ActorJob<Unit>
 
     private var isStarted: Boolean = false
+    private var isPaused: Boolean = false   // todo
 
     private var stopper: Job = Job()
-    private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(uiCoroutineContext) {
-        if (board.moveFigure(DOWN.movement))
-            score.awardSpeedUp()
+
+    private val uiContextProvider = {
+        uiCoroutineContext + stopper
     }
-    private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(uiCoroutineContext, 100) {
+    private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
+        score.awardSpeedUp()
+        gameActor.offer(Unit)
+    }
+    private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider, 100) {
         board.moveFigure(LEFT.movement)
     }
-    private var rightKeyCoroutine: KeyCoroutine = KeyCoroutine(uiCoroutineContext, 100) {
+    private var rightKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider, 100) {
         board.moveFigure(RIGHT.movement)
     }
 
     fun start(view: GameView) {
-        //!isStarted || return
         stopper.cancel()
         stopper = Job()
 
@@ -59,43 +66,25 @@ class Game(private val uiCoroutineContext: CoroutineContext) {
         score.awardStart()
 
         board = Board(view, randomFigure())
-        //debug()
-        startFall()
+
+        gameActor = provideActor()
+        gameActor.offer(Unit)
     }
 
-    private fun debug() {
-        with(board) {
-            for (i in 0 until AREA_WIDTH - 1) {
-                area[19, i] = true
-                area[18, i] = true
-                area[17, i] = true
-                area[16, i] = true
-                area[15, i] = true
-                area[14, i] = true
-                area[13, i] = true
-                area[12, i] = true
-                area[11, i] = true
-                area[10, i] = true
-            }
-            area[17, 5] = false
-            for (r in 0 until area.array.size) {
-                val row = area.array[r]
-                for (c in 0 until row.size) {
-                    val item = row[c]
-                    if (item)
-                        view.drawBlockAt(c, r, 0xffffff, PaintStyle.STROKE)
-                }
-            }
-        }
-    }
-
-    private fun startFall() = launch(uiCoroutineContext + stopper) {
+    private fun provideActor(): ActorJob<Unit> = actor(uiContextProvider()) {
+        log("actor started")
         while (isActive) {
             var falling = true
             board.drawFigure()
             while (falling) {
-                delay(calculateDelay())
-                falling = board.moveFigure(DOWN.movement)
+                falling = select {
+                    onReceive {
+                        board.moveFigure(DOWN.movement)
+                    }
+                    onTimeout(calculateDelay()) {
+                        board.moveFigure(DOWN.movement)
+                    }
+                }
             }
             if (gameOver()) {
                 isStarted = false
@@ -114,6 +103,7 @@ class Game(private val uiCoroutineContext: CoroutineContext) {
             }
         }
         view.gameOver()
+        log("actor stopped")
     }
 
     private fun calculateDelay() = (BASE_DELAY - score.level * 50).coerceAtLeast(1)
@@ -124,7 +114,7 @@ class Game(private val uiCoroutineContext: CoroutineContext) {
         val cls = figures.random
         val figure = cls.newInstance()
         figure.position = Point((AREA_WIDTH - figure.matrix.width) / 2, 0)
-        println(figure)
+        //println(figure)
         return figure
     }
 

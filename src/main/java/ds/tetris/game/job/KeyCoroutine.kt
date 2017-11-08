@@ -1,6 +1,5 @@
-package ds.tetris.game
+package ds.tetris.game.job
 
-import ds.tetris.game.job.CoroutineJob
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
@@ -9,11 +8,11 @@ import kotlin.coroutines.experimental.CoroutineContext
 private const val DEFAULT_DELAY: Long = 30
 
 class KeyCoroutine(
-    context: CoroutineContext,
+    private val contextProvider: () -> CoroutineContext,
     private val startDelay: Long = DEFAULT_DELAY,
     private val delay: Long = DEFAULT_DELAY,
     private val callback: () -> Unit
-) : CoroutineJob(context) {
+) : CoroutineJob() {
 
     private var firstCall: Boolean = true
 
@@ -21,7 +20,7 @@ class KeyCoroutine(
         firstCall = true
     }
 
-    override fun provideJob(): Job = launch(context) {
+    override fun provideJob(): Job = launch(contextProvider()) {
         while (isActive) {
             callback()
             if (firstCall) {

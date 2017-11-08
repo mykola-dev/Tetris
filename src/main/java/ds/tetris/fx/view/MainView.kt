@@ -105,7 +105,7 @@ class MainView : View("Tetris"), GameView {
             label(scoreProperty.stringBinding { "Score: $it" }).style { textFill = Color.CADETBLUE }
             style {
                 fontSize = 20.px
-                backgroundColor += Color.valueOf("#101010")
+                backgroundColor += Color.valueOf("#202020")
             }
         }
     }

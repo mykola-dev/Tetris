@@ -12,6 +12,6 @@ interface GameView {
 }
 
 interface NextFigureView {
-    fun drawBlockAt(x: Int, y: Int, color: Int, style: PaintStyle)
+    fun drawBlockAt(x: Int, y: Int, color: Int)
     fun clearArea()
 }

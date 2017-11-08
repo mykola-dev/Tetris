@@ -5,7 +5,7 @@ class Score(private val callback: Score.() -> Unit) {
     var score: Int = 0
         set(value) {
             field = value
-            if (field / level > 2500)
+            if (field / level > 2000)
                 awardLevelUp()
         }
 

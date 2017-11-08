@@ -25,14 +25,16 @@ private val figures = arrayOf(
 
 class Game(
     private val view: GameView,
+    private val preview: NextFigureView,
     private val uiCoroutineContext: CoroutineContext
 ) {
 
-    private val board: Board = Board(view, randomFigure())
+    private val board: Board = Board(view)
     private val score: Score = Score {
         view.score = score
         view.level = level
     }
+    private lateinit var nextFigure: Figure
     private lateinit var gameActor: ActorJob<Unit>
 
     private var isStarted: Boolean = false
@@ -54,6 +56,7 @@ class Game(
         board.moveFigure(RIGHT.movement)
     }
 
+
     fun start() {
         if (isStarted) error("Can't start twice")
         isStarted = true
@@ -61,6 +64,8 @@ class Game(
         view.clearArea()
 
         score.awardStart()
+
+        board.currentFigure = randomFigure()
 
         gameActor = provideActor()
         gameActor.offer(Unit)
@@ -80,6 +85,8 @@ class Game(
         log("actor started")
         while (isActive) {
             var falling = true
+            nextFigure = randomFigure(false)
+            drawPreview()
             board.drawFigure()
             while (falling) {
                 falling = select {
@@ -103,12 +110,19 @@ class Game(
                     view.wipeLines(lines)
                     score.awardLinesWipe(lines.size)
                 }
-
-                board.currentFigure = randomFigure()
+                nextFigure.position = board.startingPosition(nextFigure)
+                board.currentFigure = nextFigure
             }
         }
         view.gameOver()
         log("actor stopped")
+    }
+
+    private fun drawPreview() {
+        preview.clearArea()
+        nextFigure.points.forEach {
+            preview.drawBlockAt(it.x, it.y, nextFigure.color)
+        }
     }
 
     private fun calculateDelay() = if (!isPaused) {
@@ -120,11 +134,11 @@ class Game(
 
     private fun gameOver(): Boolean = board.currentFigure.position.y <= 0
 
-    private fun randomFigure(): Figure {
+    private fun randomFigure(bringToStart: Boolean = true): Figure {
         val cls = figures.random
         val figure = cls.newInstance()
-        figure.position = Point((AREA_WIDTH - figure.matrix.width) / 2, 0)
-        //println(figure)
+        if (bringToStart)
+            figure.position = board.startingPosition(figure)
         return figure
     }
 

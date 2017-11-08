@@ -25,11 +25,13 @@ import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 import java.awt.Toolkit
 
-const val BRICK_SIZE = 40.0
+private const val BRICK_SIZE = 40.0
 
 class MainView : View("Tetris"), GameView {
 
     private val bgColor = Color.BLACK
+
+    private val nextFigureView: NextFigure by inject()
 
     var game: Game? = null
 
@@ -73,18 +75,22 @@ class MainView : View("Tetris"), GameView {
             canvas = canvas(BRICK_SIZE * AREA_WIDTH, BRICK_SIZE * AREA_HEIGHT)
         }
 
-        vbox(32, Pos.CENTER) {
+        vbox(32, Pos.TOP_CENTER) {
             paddingAll = 16
             minWidth = 200.0
-            button(startTitleProperty) {
+
+            add(nextFigureView)
+
+            this += button(startTitleProperty) {
                 action {
                     game?.stop()
-                    game = Game(this@MainView, JavaFx)
+                    game = Game(this@MainView, nextFigureView, JavaFx)
                     game?.start()
                     startTitleProperty.set("Restart")
                 }
             }
             button(pauseTitleProperty) {
+                isFocusTraversable = false
                 action {
                     game?.pause()
                     if (game?.isPaused == true)
@@ -94,10 +100,11 @@ class MainView : View("Tetris"), GameView {
                 }
             }
 
-            label(levelProperty.stringBinding { "Level: $it" })
-            label(scoreProperty.stringBinding { "Score: $it" })
+            label(levelProperty.stringBinding { "Level: $it" }).style { textFill = Color.BURLYWOOD }
+            label(scoreProperty.stringBinding { "Score: $it" }).style { textFill = Color.CADETBLUE }
             style {
                 fontSize = 20.px
+                backgroundColor += Color.valueOf("#101010")
             }
         }
     }

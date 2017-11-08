@@ -7,9 +7,11 @@ import ds.tetris.game.figures.Point
 /**
  * This class represents the game area state and helper methods to manipulate with state
  */
-class Board(private val view: GameView, var currentFigure: Figure) {
+class Board(private val view: GameView) {
 
     var area: BitMatrix = BitMatrix(AREA_HEIGHT, AREA_WIDTH) { x, y -> false }
+
+    lateinit var currentFigure: Figure
 
     fun drawFigure() {
         with(currentFigure) {
@@ -126,4 +128,6 @@ class Board(private val view: GameView, var currentFigure: Figure) {
         }
         area = BitMatrix(cropped.toTypedArray())
     }
+
+    fun startingPosition(figure:Figure) = Point((AREA_WIDTH - figure.matrix.width) / 2, 0)
 }

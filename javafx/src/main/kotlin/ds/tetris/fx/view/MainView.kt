@@ -26,12 +26,11 @@ import tornadofx.*
 import java.awt.Toolkit
 
 private const val BRICK_SIZE = 40.0
+private const val PREVIEW_BRICK_SIZE = 20.0
 
 class MainView : View("Tetris"), GameView {
 
     private val bgColor = Color.BLACK
-
-    private val nextFigureView: NextFigure by inject()
 
     private var game: Game? = null
 
@@ -43,6 +42,7 @@ class MainView : View("Tetris"), GameView {
     override var level: Int by levelProperty
 
     private var canvas: Canvas by singleAssign()
+    private var previewCanvas: Canvas by singleAssign()
 
     private val keyDownListener: (KeyEvent) -> Unit = {
         when (it.code) {
@@ -79,7 +79,7 @@ class MainView : View("Tetris"), GameView {
             paddingAll = 16
             minWidth = 200.0
 
-            add(nextFigureView)
+            previewCanvas = canvas(PREVIEW_BRICK_SIZE * 4, PREVIEW_BRICK_SIZE * 4)
 
             button(startTitleProperty) {
                 action {
@@ -236,4 +236,25 @@ class MainView : View("Tetris"), GameView {
             }
         }
     }
+
+    override fun drawPreviewBlockAt(x: Int, y: Int, color: Int) {
+        val gap = 1.0
+        val radius = 4.0
+        with(previewCanvas.graphicsContext2D) {
+            fill = color.toColor()
+            stroke = Color.TRANSPARENT
+            fillRoundRect(
+                x * PREVIEW_BRICK_SIZE + gap,
+                y * PREVIEW_BRICK_SIZE + gap,
+                PREVIEW_BRICK_SIZE - gap * 2,
+                PREVIEW_BRICK_SIZE - gap * 2,
+                radius, radius
+            )
+        }
+    }
+
+    override fun clearPreviewArea() = previewCanvas.graphicsContext2D.clearRect(0.0, 0.0, previewCanvas.width, previewCanvas.height)
+
+    override fun invalidate() {}
+
 }

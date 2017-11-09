@@ -2,6 +2,7 @@ package ds.tetris.game
 
 const val AREA_WIDTH = 10
 const val AREA_HEIGHT = 20
+const val INFINITY = Long.MAX_VALUE / 2 // android workaround
 
 val colors = longArrayOf(
     0xFFA80000,

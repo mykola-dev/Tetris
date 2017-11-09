@@ -129,7 +129,7 @@ class Game(
     private fun calculateDelay(): Long = if (!isPaused) {
         (BASE_DELAY - score.level * 50).coerceAtLeast(1)
     } else {
-        Long.MAX_VALUE / 2  // android workaround
+        INFINITY
     }
 
     private fun gameOver(): Boolean = board.currentFigure.position.y <= 0

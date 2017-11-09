@@ -1,3 +1,6 @@
+group = 'ds.tetris'
+version = '0.0.1-SNAPSHOT'
+
 apply plugin: 'kotlin'
 
 compileKotlin {

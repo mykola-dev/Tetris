@@ -12,4 +12,8 @@ interface GameView {
 
     fun drawPreviewBlockAt(x: Int, y: Int, color: Int)
     fun clearPreviewArea()
+    /**
+     * Optional API. Used in Android for better performance
+     */
+    fun invalidate()
 }

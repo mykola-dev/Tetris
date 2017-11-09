@@ -12,10 +12,6 @@ import kotlinx.coroutines.experimental.launch
 
 class GameBoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
 
-    init {
-        //setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-    }
-
     private val radius = 8f
     private val gap = 2
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -38,7 +34,6 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
             left, top, right, bottom,
             radius, radius, paint
         )
-        invalidate()
     }
 
     fun fillBlockAt(x: Int, y: Int, color: Int) {
@@ -53,7 +48,6 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
 
     fun clearBlockAt(x: Int, y: Int) {
         canvas?.clearRect(x * brickSize, y * brickSize, brickSize, brickSize)
-        invalidate()
     }
 
     fun clearArea() {
@@ -73,7 +67,6 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
             invalidate()
             delay(50)
         }
-
 
         // animate nicely
         var globalOffset = 0f

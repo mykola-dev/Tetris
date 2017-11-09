@@ -14,28 +14,27 @@ class Board(private val view: GameView) {
 
     lateinit var currentFigure: Figure
 
-    fun drawFigure() {
-        with(currentFigure) {
-            if (ghost == null) {
-                // find ghost
-                for (i in 0 until AREA_HEIGHT - position.y) {
-                    val movement = Point(0, i)
-                    if (!canMove(movement, currentFigure)) {
-                        ghost = clone()
-                        ghost!!.position = Point(position.x, position.y + i - 1)
-                        break
-                    }
+    fun drawFigure() = with(currentFigure) {
+        if (ghost == null) {
+            // find ghost
+            for (i in 0 until AREA_HEIGHT - position.y) {
+                val movement = Point(0, i)
+                if (!canMove(movement, currentFigure)) {
+                    ghost = clone()
+                    ghost!!.position = Point(position.x, position.y + i - 1)
+                    break
                 }
             }
-
-            ghost?.points?.forEach {
-                view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.STROKE)
-            }
-
-            points.forEach {
-                view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.FILL)
-            }
         }
+
+        ghost?.points?.forEach {
+            view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.STROKE)
+        }
+
+        points.forEach {
+            view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.FILL)
+        }
+        view.invalidate()
     }
 
     private fun clearFigure(figure: Figure) {

@@ -123,6 +123,7 @@ class Game(
         nextFigure.points.forEach {
             view.drawPreviewBlockAt(it.x, it.y, nextFigure.color)
         }
+        view.invalidate()
     }
 
     private fun calculateDelay(): Long = if (!isPaused) {

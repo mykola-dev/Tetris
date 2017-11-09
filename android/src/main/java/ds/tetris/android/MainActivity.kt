@@ -94,6 +94,11 @@ class MainActivity : AppCompatActivity(), GameView {
     }
 
     override fun clearPreviewArea() {
+        nextFigure.clear()
+    }
+
+    override fun invalidate() {
+        boardView.invalidate()
         nextFigure.invalidate()
     }
 }

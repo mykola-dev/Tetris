@@ -25,7 +25,6 @@ private val figures = arrayOf(
 
 class Game(
     private val view: GameView,
-    private val preview: NextFigureView,
     private val uiCoroutineContext: CoroutineContext
 ) {
 
@@ -35,6 +34,25 @@ class Game(
         view.level = level
     }
     private lateinit var nextFigure: Figure
+
+    private var isStarted: Boolean = false
+    var isPaused: Boolean = false
+
+    private var stopper: Job = Job()
+
+    private val uiContextProvider = {
+        uiCoroutineContext + stopper
+    }
+    private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider, 30) {
+        score.awardSpeedUp()
+        gameActor.offer(Unit)
+    }
+    private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
+        board.moveFigure(LEFT.movement)
+    }
+    private var rightKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
+        board.moveFigure(RIGHT.movement)
+    }
 
     private val gameActor: ActorJob<Unit> by lazy {
         actor<Unit>(uiContextProvider()) {
@@ -76,25 +94,6 @@ class Game(
         }
     }
 
-    private var isStarted: Boolean = false
-    var isPaused: Boolean = false
-
-    private var stopper: Job = Job()
-
-    private val uiContextProvider = {
-        uiCoroutineContext + stopper
-    }
-    private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider, 30) {
-        score.awardSpeedUp()
-        gameActor.offer(Unit)
-    }
-    private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
-        board.moveFigure(LEFT.movement)
-    }
-    private var rightKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
-        board.moveFigure(RIGHT.movement)
-    }
-
     fun start() {
         if (isStarted) error("Can't start twice")
         isStarted = true
@@ -103,8 +102,8 @@ class Game(
 
         score.awardStart()
 
-        board.currentFigure = randomFigure()
-
+        board.currentFigure = IFigure()
+        sceneFiller(board,view)
         gameActor.offer(Unit)
     }
 
@@ -120,16 +119,16 @@ class Game(
     }
 
     private fun drawPreview() {
-        preview.clearArea()
+        view.clearPreviewArea()
         nextFigure.points.forEach {
-            preview.drawBlockAt(it.x, it.y, nextFigure.color)
+            view.drawPreviewBlockAt(it.x, it.y, nextFigure.color)
         }
     }
 
-    private fun calculateDelay() = if (!isPaused) {
+    private fun calculateDelay(): Long = if (!isPaused) {
         (BASE_DELAY - score.level * 50).coerceAtLeast(1)
     } else {
-        Long.MAX_VALUE
+        Long.MAX_VALUE / 2  // android workaround
     }
 
     private fun gameOver(): Boolean = board.currentFigure.position.y <= 0

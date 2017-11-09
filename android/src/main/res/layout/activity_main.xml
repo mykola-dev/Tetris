@@ -7,10 +7,121 @@
     android:orientation="vertical"
     >
 
-    <ds.tetris.android.NextFigure
-        android:id="@+id/nextFigure"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_weight="1"
+        >
+
+        <ds.tetris.android.GameBoardView
+            android:id="@+id/boardView"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="#000"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_margin="16dp"
+            >
+
+            <ds.tetris.android.NextFigure
+                android:id="@+id/nextFigure"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#222"
+                />
+
+            <Button
+                android:id="@+id/startButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Start"
+                android:layout_marginTop="16dp"
+                />
+
+            <Button
+                android:id="@+id/pauseButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pause"
+                />
+
+            <TextView
+                android:id="@+id/levelLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Level"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/colorAccent"
+                android:textAppearance="?android:textAppearanceMedium"
+                />
+
+            <TextView
+                android:id="@+id/scoreLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/scoreColor"
+                android:text="Score"
+                android:layout_marginTop="16dp"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttons"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        />
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/leftButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="&lt;"
+            />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <Button
+                android:id="@+id/upButton"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="^"
+                />
+
+            <Button
+                android:id="@+id/downButton"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="V"
+                />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/rightButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="&gt;"
+            />
+
+    </LinearLayout>
 
 </LinearLayout>

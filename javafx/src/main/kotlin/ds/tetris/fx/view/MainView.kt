@@ -81,10 +81,10 @@ class MainView : View("Tetris"), GameView {
 
             add(nextFigureView)
 
-            this += button(startTitleProperty) {
+            button(startTitleProperty) {
                 action {
                     game?.stop()
-                    game = Game(this@MainView, nextFigureView, JavaFx)
+                    game = Game(this@MainView, JavaFx)
                     game?.start()
                     startTitleProperty.set("Restart")
                     pauseTitleProperty.set("Pause")

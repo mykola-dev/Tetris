@@ -27,7 +27,7 @@ interface Figure {
     }
 }
 
-abstract class BaseFigure(override var color: Int = colors.random) : Figure {
+abstract class BaseFigure(override var color: Int = colors.random.toInt()) : Figure {
     override var position: Point = Point(0, 0)
     override var ghost: Figure? = null
 

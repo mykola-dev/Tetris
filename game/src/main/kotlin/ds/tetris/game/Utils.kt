@@ -4,12 +4,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 val <T> Array<T>.random get() = this[(Math.random() * size).toInt()]
+val LongArray.random get() = this[(Math.random() * size).toInt()]
 
 fun log(s: String) = println("${getDate()}: $s")
 private fun getDate(): String = SimpleDateFormat("kk:mm:ss.SS").format(Date())
 
 // for debug
-private fun sceneFiller(board: Board, view: GameView) {
+fun sceneFiller(board: Board, view: GameView) {
     with(board) {
         for (i in 0 until ds.tetris.game.AREA_WIDTH - 1) {
             area[19, i] = true
@@ -29,7 +30,7 @@ private fun sceneFiller(board: Board, view: GameView) {
             for (c in 0 until row.size) {
                 val item = row[c]
                 if (item)
-                    view.drawBlockAt(c, r, 0xffffff, ds.tetris.game.PaintStyle.STROKE)
+                    view.drawBlockAt(c, r, 0xffffffff.toInt(), PaintStyle.FILL)
             }
         }
     }

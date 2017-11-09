@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity(), GameView {
     }
 
     suspend override fun wipeLines(lines: List<Int>) {
-        boardView.wipeLines(lines)
+        boardView.wipeLines(lines, game?.getTopBrickLine() ?: 0)
     }
 
     override fun drawPreviewBlockAt(x: Int, y: Int, color: Int) {

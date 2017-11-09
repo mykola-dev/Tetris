@@ -142,6 +142,8 @@ class Game(
         return figure
     }
 
+    fun getTopBrickLine()=board.area.array.indexOfFirst { !it.all { !it } }
+
     fun onLeftPressed() = leftKeyCoroutine.start()
     fun onRightPressed() = rightKeyCoroutine.start()
     fun onUpPressed() = board.rotateFigure()

@@ -13,8 +13,8 @@ class NextFigure @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     private val bricks = mutableListOf<Point>()
     private val brickSize get() = (width / 4).toFloat()
-    private val radius = 2f
-    private val gap = 1
+    private val radius = 8f
+    private val gap = 2
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, widthMeasureSpec)

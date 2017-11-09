@@ -55,28 +55,37 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
         invalidate()
     }
 
-    suspend fun wipeLines(lines: List<Int>) {
+    suspend fun wipeLines(lines: List<Int>, first: Int) {
+
+        //Trace.beginSection("fade")
         // fade nicely
         val brick = brickSize
         val iterations = 5
         repeat(iterations) {
             val paint = if (it == iterations - 1) clearPaint else transparentPaint
             for (line in lines) {
-                canvas?.drawRect(0f, (line * brick).toFloat(), width.toFloat(), ((line + 1) * brick).toFloat(), paint)
+                canvas?.drawRect(0f, line * brick, width.toFloat(), (line + 1) * brick, paint)
             }
             invalidate()
             delay(50)
         }
+        //Trace.endSection()
+
+        //Trace.beginSection("drop down")
 
         // animate nicely
-        var globalOffset = 0f
+        var globalOffset = 0
         val animationJobs = mutableListOf<Job>()
         for (i in lines.size - 1 downTo 0) {
-            val startline = if (i == 0) 0 else lines[i - 1] + 1
+            globalOffset++
+            val offset = globalOffset * brick
+            val startline = if (i == 0) {
+                first - globalOffset
+            } else {
+                lines[i - 1] + 1
+            }
             val size = lines[i] - startline
 
-            globalOffset += brick
-            val offset = globalOffset
             if (size > 0) {
                 animationJobs += launch(coroutineContext()) {
                     val h = size * brick
@@ -94,8 +103,8 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
                 }
             }
         }
-
         animationJobs.forEach { it.join() }
+        //Trace.endSection()
     }
 
     private fun Canvas.clearRect(x: Float, y: Float, width: Float, height: Float) {

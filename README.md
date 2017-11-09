@@ -1,6 +1,6 @@
 # Tetris
 
-Tetris game written in Kotlin for desktop (JavaFx) and mobile (Android, todo) platforms.
+Tetris game written in Kotlin for desktop (JavaFx) and mobile (Android) platforms.
 
 ![](https://github.com/deviant-studio/Tetris/blob/master/media/2017-11-08_18-23-37.gif)
 

@@ -1,57 +1,24 @@
 buildscript {
     ext.kotlin_version = '1.2.0-rc-39'
+    ext.coroutines_version = '0.19.3'
 
     dependencies {
-        classpath 'de.dynamicfiles.projects.gradle.plugins:javafx-gradle-plugin:8.8.2'
+        classpath "de.dynamicfiles.projects.gradle.plugins:javafx-gradle-plugin:8.8.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.android.tools.build:gradle:2.3.3"
     }
     repositories {
         jcenter()
+        google()
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
     }
 }
 
-apply plugin: 'kotlin'
-
-repositories {
-    jcenter()
-    maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
-}
-
-kotlin {
-    experimental {
-        coroutines "enable"
+allprojects {
+    repositories {
+        jcenter()
+        google()
+        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
     }
-}
-
-compileKotlin {
-    kotlinOptions {
-        suppressWarnings = true
-        jvmTarget = 1.8
-    }
-}
-
-dependencies {
-    def coroutines_version = '0.19.3'
-
-    compile 'no.tornado:tornadofx:1.7.12'
-
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-
-    // coroutines
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-javafx:$coroutines_version"
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutines_version"
-
-    testCompile 'junit:junit:4.12'
-
-}
-
-apply plugin: 'javafx-gradle-plugin'
-
-jfx {
-    mainClass = 'ds.tetris.TetrisAppKt'
-    vendor = 'Deviant Studio'
-    verbose = true
 
 }

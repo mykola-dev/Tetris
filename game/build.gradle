@@ -1,0 +1,24 @@
+apply plugin: 'kotlin'
+
+compileKotlin {
+    kotlinOptions {
+        suppressWarnings = true
+        jvmTarget = 1.8
+    }
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+
+    // coroutines
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutines_version"
+
+    testCompile 'junit:junit:4.12'
+}

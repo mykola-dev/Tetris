@@ -10,7 +10,7 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 
-class GameBoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
+class GameBoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : BaseSurfaceView(context, attrs) {
 
     private val radius = 8f
     private val gap = 2
@@ -119,8 +119,9 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
     }
 
     override fun onDraw(canvas: Canvas) {
-        if (bitmap != null)
+        if (bitmap != null) {
             canvas.drawBitmap(bitmap, 0f, 0f, fillPaint)
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

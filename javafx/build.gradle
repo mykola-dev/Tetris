@@ -2,6 +2,9 @@ group = 'ds.tetris'
 version = '0.0.1-SNAPSHOT'
 
 apply plugin: 'kotlin'
+apply plugin: 'application'
+
+mainClassName = "ds.tetris.TetrisAppKt"
 
 compileKotlin {
     kotlinOptions {
@@ -32,10 +35,11 @@ dependencies {
 
 }
 
+/*
 apply plugin: 'javafx-gradle-plugin'
 
 jfx {
     mainClass = 'ds.tetris.TetrisAppKt'
     vendor = 'Deviant Studio'
     verbose = true
-}
+}*/

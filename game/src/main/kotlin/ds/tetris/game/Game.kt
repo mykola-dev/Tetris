@@ -25,12 +25,16 @@ private val figures = arrayOf(
 
 class Game(
     private val view: GameView,
+    private val soundtrack: Soundtrack,
     private val uiCoroutineContext: CoroutineContext
 ) {
+    var soundEnabled = true
 
     private val board: Board = Board(view)
     private val score: Score = Score {
         view.score = score
+        if (view.level < level && view.level != 0 && soundEnabled)
+            soundtrack.play(Sound.LEVEL_UP)
         view.level = level
     }
     private lateinit var nextFigure: Figure
@@ -75,12 +79,14 @@ class Game(
                 downKeyCoroutine.stop()
                 if (gameOver()) {
                     isStarted = false
+                    if (soundEnabled) soundtrack.play(Sound.GAME_OVER)
                     coroutineContext.cancel()
                 } else {
                     board.fixFigure()
 
                     val lines = board.getFilledLinesIndices()
                     if (lines.isNotEmpty()) {
+                        if (soundEnabled) soundtrack.play(Sound.WIPE, lines.size)
                         board.wipeLines(lines)
                         view.wipeLines(lines)
                         score.awardLinesWipe(lines.size)
@@ -103,8 +109,10 @@ class Game(
         score.awardStart()
 
         board.currentFigure = IFigure()//randomFigure()
-        sceneFiller(board,view)
+        sceneFiller(board, view)
         gameActor.offer(Unit)
+
+        if (soundEnabled) soundtrack.play(Sound.START)
     }
 
     fun stop() {
@@ -142,14 +150,33 @@ class Game(
         return figure
     }
 
-    fun getTopBrickLine()=board.area.array.indexOfFirst { !it.all { !it } }
+    fun getTopBrickLine() = board.area.array.indexOfFirst { !it.all { !it } }
 
-    fun onLeftPressed() = leftKeyCoroutine.start()
-    fun onRightPressed() = rightKeyCoroutine.start()
-    fun onUpPressed() = board.rotateFigure()
-    fun onDownPressed() = downKeyCoroutine.start()
+    fun onLeftPressed() {
+        if (isStarted) leftKeyCoroutine.start()
+        playMoveSound()
+    }
+
+    fun onRightPressed() {
+        if (isStarted) rightKeyCoroutine.start()
+        playMoveSound()
+    }
+
+    fun onDownPressed() {
+        if (isStarted) downKeyCoroutine.start()
+        playMoveSound()
+    }
+
+    fun onUpPressed() {
+        if (isStarted) board.rotateFigure()
+        if (soundEnabled) soundtrack.play(Sound.ROTATE)
+    }
+
     fun onDownReleased() = downKeyCoroutine.stop()
     fun onLeftReleased() = leftKeyCoroutine.stop()
     fun onRightReleased() = rightKeyCoroutine.stop()
 
+    private fun playMoveSound() {
+        if (soundEnabled) soundtrack.play(Sound.MOVE, (Math.random() * 4 + 1).toInt())
+    }
 }

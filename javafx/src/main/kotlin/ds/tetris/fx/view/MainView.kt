@@ -1,6 +1,7 @@
 package ds.tetris.fx.view
 
 import ds.tetris.coroutines.coroutineContext
+import ds.tetris.fx.SoundtrackFx
 import ds.tetris.fx.util.clearRect
 import ds.tetris.fx.util.drawImage
 import ds.tetris.fx.util.toColor
@@ -12,6 +13,7 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.Parent
 import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.Canvas
+import javafx.scene.control.CheckBox
 import javafx.scene.image.WritableImage
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -43,6 +45,7 @@ class MainView : View("Tetris"), GameView {
 
     private var canvas: Canvas by singleAssign()
     private var previewCanvas: Canvas by singleAssign()
+    private var soundCheck: CheckBox by singleAssign()
 
     private val keyDownListener: (KeyEvent) -> Unit = {
         when (it.code) {
@@ -80,11 +83,11 @@ class MainView : View("Tetris"), GameView {
             minWidth = 200.0
 
             previewCanvas = canvas(PREVIEW_BRICK_SIZE * 4, PREVIEW_BRICK_SIZE * 4)
-
             button(startTitleProperty) {
                 action {
                     game?.stop()
-                    game = Game(this@MainView, JavaFx)
+                    game = Game(this@MainView, SoundtrackFx(), JavaFx)
+                    game?.soundEnabled = soundCheck.isSelected
                     game?.start()
                     startTitleProperty.set("Restart")
                     pauseTitleProperty.set("Pause")
@@ -101,8 +104,20 @@ class MainView : View("Tetris"), GameView {
                 }
             }
 
+            soundCheck = checkbox("Sound") {
+                isSelected = true
+                action {
+                    game?.soundEnabled = isSelected
+                }
+                style {
+                    textFill = Color.WHITE
+                    fontSize = 14.px
+                }
+            }
+
             label(levelProperty.stringBinding { "Level: $it" }).style { textFill = Color.BURLYWOOD }
             label(scoreProperty.stringBinding { "Score: $it" }).style { textFill = Color.CADETBLUE }
+
             style {
                 fontSize = 20.px
                 backgroundColor += Color.valueOf("#202020")

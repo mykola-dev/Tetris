@@ -4,16 +4,12 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
-import ds.tetris.coroutines.coroutineContext
 import ds.tetris.game.AREA_WIDTH
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.*
+import kotlin.system.measureNanoTime
 
 class GameBoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : BaseSurfaceView(context, attrs) {
 
-    private val radius = 8f
-    private val gap = 2
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val clearPaint = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
@@ -22,9 +18,11 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
     private var canvas: Canvas? = null
     private var bitmap: Bitmap? = null
 
+    private val animationDispatcher = newSingleThreadContext("animation")
+
     private val brickSize get() = (width / AREA_WIDTH).toFloat()
 
-    private fun drawBlockWithPaint(x: Int, y: Int, paint: Paint) {
+    private fun drawBlockWithPaint(x: Int, y: Int, paint: Paint, gap: Int = 2, radius: Float = 8f) {
         val left: Float = x * brickSize + gap
         val top: Float = y * brickSize + gap
         val right: Float = left + brickSize - gap * 2
@@ -47,7 +45,7 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
     }
 
     fun clearBlockAt(x: Int, y: Int) {
-        canvas?.clearRect(x * brickSize, y * brickSize, brickSize, brickSize)
+        drawBlockWithPaint(x, y, clearPaint, 0, 0f)
     }
 
     fun clearArea() {
@@ -78,7 +76,7 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
         val animationJobs = mutableListOf<Job>()
         for (i in lines.size - 1 downTo 0) {
             globalOffset++
-            val offset = globalOffset * brick
+            val distance = globalOffset * brick
             val startline = if (i == 0) {
                 first - globalOffset
             } else {
@@ -87,28 +85,28 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
             val size = lines[i] - startline
 
             if (size > 0) {
-                animationJobs += launch(coroutineContext()) {
-                    val h = size * brick
-                    println("area start=$startline size=$size with offset $offset")
-                    var y = startline * brick
-                    val slice = Bitmap.createBitmap(bitmap, 0, y.toInt(), width, h.toInt())
-                    val times = 10
+                animationJobs += launch(animationDispatcher) {
+                    val h: Float = size * brick
+                    println("area start=$startline size=$size with distance $distance")
+                    var y: Float = startline * brick
+                    val slice = run(coroutineContext) { Bitmap.createBitmap(bitmap, 0, y.toInt(), width, h.toInt()) }
+                    val times = 9
                     for (j in 0..times) {
-                        canvas?.clearRect(0f, y, width.toFloat(), h)
-                        y = startline * brick + j * offset / times
-                        canvas?.drawBitmap(slice, 0f, y, fillPaint)
-                        invalidate()
-                        delay(16)
+                        profile("draw canvas") {
+                            val nanos = measureNanoTime {
+                                canvas?.drawRect(0f, y, width.toFloat(), y + h, clearPaint)
+                                y = startline * brick + j * distance / times
+                                canvas?.drawBitmap(slice, 0f, y, fillPaint)
+                                postInvalidate()
+                            }
+                            delay((16 - Math.round(nanos / 1000000.0)).coerceAtLeast(0))
+                        }
                     }
                 }
             }
         }
         animationJobs.forEach { it.join() }
         //Trace.endSection()
-    }
-
-    private fun Canvas.clearRect(x: Float, y: Float, width: Float, height: Float) {
-        canvas?.drawRect(x, y, x + width, y + height, clearPaint)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {

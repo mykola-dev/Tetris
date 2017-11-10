@@ -102,8 +102,8 @@ class Game(
 
         score.awardStart()
 
-        board.currentFigure = randomFigure()
-        //sceneFiller(board,view)
+        board.currentFigure = IFigure()//randomFigure()
+        sceneFiller(board,view)
         gameActor.offer(Unit)
     }
 

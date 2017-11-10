@@ -12,6 +12,7 @@ import ds.tetris.game.log
 import kotlinx.coroutines.experimental.channels.actor
 import kotlinx.coroutines.experimental.newSingleThreadContext
 
+@Suppress("LeakingThis")
 abstract class BaseSurfaceView(context: Context, attrs: AttributeSet? = null) : SurfaceView(context, attrs) {
     private val holderCallback: SurfaceHolder.Callback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder?) {
@@ -34,7 +35,7 @@ abstract class BaseSurfaceView(context: Context, attrs: AttributeSet? = null) : 
         holder.addCallback(holderCallback)
     }
 
-    protected val surfaceActor = actor<Unit>(newSingleThreadContext(javaClass.simpleName)) {
+    private val surfaceActor = actor<Unit>(newSingleThreadContext(javaClass.simpleName)) {
         while (isActive) {
             receive()
             var canvas: Canvas? = null
@@ -56,8 +57,12 @@ abstract class BaseSurfaceView(context: Context, attrs: AttributeSet? = null) : 
 
     override fun invalidate() {
         super.invalidate()
-        if (surfaceReady)
-            surfaceActor.offer(Unit)
+        if (surfaceReady) surfaceActor.offer(Unit)
+    }
+
+    override fun postInvalidate() {
+        super.postInvalidate()
+        if (surfaceReady) surfaceActor.offer(Unit)
     }
 
     override fun onDetachedFromWindow() {

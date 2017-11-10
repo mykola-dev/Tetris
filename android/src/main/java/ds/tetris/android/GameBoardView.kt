@@ -98,7 +98,7 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
                         y = startline * brick + j * offset / times
                         canvas?.drawBitmap(slice, 0f, y, fillPaint)
                         invalidate()
-                        delay(10)
+                        delay(16)
                     }
                 }
             }

@@ -1,6 +1,6 @@
 # Tetris
 
-Tetris game written in Kotlin for desktop (JavaFx) and mobile (Android, todo) platforms.
+Tetris game written in Kotlin for desktop (JavaFx) and mobile (Android) platforms.
 
 All sounds was made with my old good Ibanez guitar :)
 

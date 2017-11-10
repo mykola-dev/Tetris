@@ -108,8 +108,8 @@ class Game(
 
         score.awardStart()
 
-        board.currentFigure = IFigure()//randomFigure()
-        sceneFiller(board, view)
+        board.currentFigure = /*IFigure()*/randomFigure()
+        //sceneFiller(board, view)
         gameActor.offer(Unit)
 
         if (soundEnabled) soundtrack.play(Sound.START)
@@ -121,6 +121,7 @@ class Game(
 
     fun pause() {
         gameActor.isActive || return
+        if (soundEnabled) soundtrack.play(Sound.ROTATE)
         isPaused = !isPaused
         if (!isPaused)
             gameActor.offer(Unit)

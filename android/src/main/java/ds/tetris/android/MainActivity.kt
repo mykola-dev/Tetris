@@ -14,27 +14,33 @@ import kotlinx.coroutines.experimental.android.UI
 class MainActivity : AppCompatActivity(), GameView {
 
     private var game: Game? = null
+    private lateinit var soundtrack: SoundtrackAndroid
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        soundtrack = SoundtrackAndroid(this)
         initListeners()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         game?.stop()
+        soundtrack.release()
     }
 
     private fun initListeners() {
         startButton.setOnClickListener {
             game?.stop()
-            game = Game(this, UI)
+            game = Game(this, soundtrack, UI)
+            game?.soundEnabled = soundCheck.isChecked
             game?.start()
 
             startButton.text = "Restart"
             pauseButton.text = "Pause"
+        }
+        soundCheck.setOnCheckedChangeListener { _, isChecked ->
+            game?.soundEnabled = isChecked
         }
         pauseButton.setOnClickListener {
             game?.pause()

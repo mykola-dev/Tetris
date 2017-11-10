@@ -1,3 +1,7 @@
+/*
+ * © 2017 Deviant Studio
+ */
+
 package ds.tetris.game.figures
 
 import ds.tetris.game.colors

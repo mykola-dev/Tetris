@@ -1,3 +1,7 @@
+/*
+ * © 2017 Deviant Studio
+ */
+
 package ds.tetris.game
 
 class Score(private val callback: Score.() -> Unit) {

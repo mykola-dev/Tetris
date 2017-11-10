@@ -1,3 +1,7 @@
+/*
+ * © 2017 Deviant Studio
+ */
+
 package ds.tetris.game
 
 const val AREA_WIDTH = 10

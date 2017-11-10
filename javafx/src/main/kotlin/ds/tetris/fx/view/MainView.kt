@@ -1,3 +1,7 @@
+/*
+ * © 2017 Deviant Studio
+ */
+
 package ds.tetris.fx.view
 
 import ds.tetris.coroutines.coroutineContext

@@ -1,3 +1,7 @@
+/*
+ * © 2017 Deviant Studio
+ */
+
 package ds.tetris.fx.util
 
 import javafx.geometry.Rectangle2D

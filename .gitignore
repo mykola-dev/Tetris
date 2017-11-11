@@ -2,6 +2,6 @@
 .idea
 .gradle
 build
-out
 *.iml
 local.properties
+android-debug.apk

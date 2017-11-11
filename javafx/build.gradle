@@ -35,11 +35,11 @@ dependencies {
 
 }
 
-/*
-apply plugin: 'javafx-gradle-plugin'
+/*apply plugin: 'javafx-gradle-plugin'
 
 jfx {
     mainClass = 'ds.tetris.TetrisAppKt'
     vendor = 'Deviant Studio'
     verbose = true
+    nativeOutputDir = "../release/desktop"
 }*/

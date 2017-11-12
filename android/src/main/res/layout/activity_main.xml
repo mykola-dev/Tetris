@@ -95,7 +95,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:text="&lt;"
+            android:backgroundTint="@color/button4"
             />
 
         <LinearLayout
@@ -110,25 +110,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:text="^"
+                android:backgroundTint="@color/button1"
                 />
 
             <Button
+                android:layout_marginTop="-4dp"
                 android:id="@+id/downButton"
                 android:layout_width="match_parent"
+                android:backgroundTint="@color/button2"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:text="V"
                 />
 
         </LinearLayout>
 
         <Button
             android:id="@+id/rightButton"
+            android:backgroundTint="@color/button0"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:text="&gt;"
             />
 
     </LinearLayout>

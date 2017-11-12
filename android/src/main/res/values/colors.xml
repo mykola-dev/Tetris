@@ -5,4 +5,26 @@
     <color name="colorAccent">#ffb640</color>
 
     <color name="scoreColor">#20baa0</color>
+
+    <color name="button1">#FFCC44CC</color>
+    <color name="button2">#FF00CC55</color>
+    <color name="button4">#FFEEEE77</color>
+    <color name="button5">#FFDD8855</color>
+    <color name="button6">#FF804C40</color>
+    <color name="button7">#FFFFA890</color>
+    <color name="button8">#FF989498</color>
+    <color name="button9">#FFAAFF66</color>
+    <color name="button0">#FF60B0FF</color>
+
+    0xFFA80000,
+    0xFFCC44CC,
+    0xFF00CC55,
+    0xFF2844E0,
+    0xFFEEEE77,
+    0xFFDD8855,
+    0xFF804C40,
+    0xFFFFA890,
+    0xFF989498,
+    0xFFAAFF66,
+    0xFF60B0FF
 </resources>

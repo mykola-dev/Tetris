@@ -20,11 +20,6 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            output.outputFile = new File("release/android", output.outputFile.name)
-        }
-    }
 }
 
 kotlin {

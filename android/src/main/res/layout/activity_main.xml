@@ -41,6 +41,7 @@
                 android:layout_height="wrap_content"
                 android:text="Start"
                 android:soundEffectsEnabled="false"
+                android:focusable="false"
                 />
 
             <Button
@@ -49,6 +50,7 @@
                 android:layout_height="wrap_content"
                 android:text="Pause"
                 android:soundEffectsEnabled="false"
+                android:focusable="false"
                 />
 
             <CheckBox
@@ -58,6 +60,7 @@
                 android:layout_height="wrap_content"
                 android:checked="true"
                 android:text="Sound"
+                android:focusable="false"
                 />
 
             <TextView
@@ -96,6 +99,7 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:backgroundTint="@color/button4"
+            android:focusable="false"
             />
 
         <LinearLayout
@@ -111,6 +115,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:backgroundTint="@color/button1"
+                android:focusable="false"
                 />
 
             <Button
@@ -120,6 +125,7 @@
                 android:backgroundTint="@color/button2"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:focusable="false"
                 />
 
         </LinearLayout>
@@ -130,6 +136,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
+            android:focusable="false"
             />
 
     </LinearLayout>

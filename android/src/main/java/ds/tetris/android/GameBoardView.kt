@@ -9,7 +9,10 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import ds.tetris.game.AREA_WIDTH
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.newSingleThreadContext
 import kotlin.system.measureNanoTime
 
 class GameBoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : BaseSurfaceView(context, attrs) {
@@ -59,7 +62,6 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
 
     suspend fun wipeLines(lines: List<Int>, first: Int) {
 
-        //Trace.beginSection("fade")
         // fade nicely
         val brick = brickSize
         val iterations = 5
@@ -71,9 +73,6 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
             invalidate()
             delay(50)
         }
-        //Trace.endSection()
-
-        //Trace.beginSection("drop down")
 
         // animate nicely
         var globalOffset = 0
@@ -93,7 +92,7 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
                     val h: Float = size * brick
                     println("area start=$startline size=$size with distance $distance")
                     var y: Float = startline * brick
-                    val slice = run(coroutineContext) { Bitmap.createBitmap(bitmap, 0, y.toInt(), width, h.toInt()) }
+                    val slice = Bitmap.createBitmap(bitmap, 0, y.toInt(), width, h.toInt())
                     val times = 9
                     for (j in 0..times) {
                         profile("draw canvas") {
@@ -110,7 +109,6 @@ class GameBoardView @JvmOverloads constructor(context: Context, attrs: Attribute
             }
         }
         animationJobs.forEach { it.join() }
-        //Trace.endSection()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {

@@ -53,7 +53,7 @@ class Game(
     }
     private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider, 30) {
         score.awardSpeedUp()
-        gameActor.offer(Unit)
+        fallActor.offer(Unit)
     }
     private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
         board.moveFigure(LEFT.movement)
@@ -62,7 +62,7 @@ class Game(
         board.moveFigure(RIGHT.movement)
     }
 
-    private val gameActor: ActorJob<Unit> by lazy {
+    private val fallActor: ActorJob<Unit> by lazy {
         actor<Unit>(uiContextProvider()) {
             log("actor started")
             while (isActive) {
@@ -114,7 +114,7 @@ class Game(
 
         board.currentFigure = /*IFigure()*/randomFigure()
         //sceneFiller(board, view)
-        gameActor.offer(Unit)
+        fallActor.offer(Unit)
 
         if (soundEnabled) soundtrack.play(Sound.START)
     }
@@ -124,11 +124,11 @@ class Game(
     }
 
     fun pause() {
-        gameActor.isActive || return
+        fallActor.isActive || return
         if (soundEnabled) soundtrack.play(Sound.ROTATE)
         isPaused = !isPaused
         if (!isPaused)
-            gameActor.offer(Unit)
+            fallActor.offer(Unit)
     }
 
     private fun drawPreview() {

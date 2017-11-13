@@ -7,6 +7,7 @@ package ds.tetris.android
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import ds.tetris.game.Game
@@ -110,6 +111,25 @@ class MainActivity : AppCompatActivity(), GameView {
     override fun invalidate() {
         boardView.invalidate()
         nextFigure.invalidate()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> game?.onLeftPressed()
+            KeyEvent.KEYCODE_DPAD_RIGHT -> game?.onRightPressed()
+            KeyEvent.KEYCODE_DPAD_UP -> game?.onUpPressed()
+            KeyEvent.KEYCODE_DPAD_DOWN -> game?.onDownPressed()
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> game?.onLeftReleased()
+            KeyEvent.KEYCODE_DPAD_RIGHT -> game?.onRightReleased()
+            KeyEvent.KEYCODE_DPAD_DOWN -> game?.onDownReleased()
+        }
+        return super.onKeyUp(keyCode, event)
     }
 }
 

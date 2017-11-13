@@ -39,7 +39,7 @@ abstract class BaseSurfaceView(context: Context, attrs: AttributeSet? = null) : 
         holder.addCallback(holderCallback)
     }
 
-    private val surfaceActor = actor<Unit>(newSingleThreadContext(javaClass.simpleName)) {
+    private val surfaceActor = actor<Unit>(newSingleThreadContext(javaClass.simpleName), 2) {
         while (isActive) {
             receive()
             var canvas: Canvas? = null

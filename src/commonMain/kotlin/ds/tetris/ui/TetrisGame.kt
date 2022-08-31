@@ -1,34 +1,37 @@
 package ds.tetris.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ds.tetris.game.Game
 import ds.tetris.game.GameState
-import ds.tetris.game.figures.Brick
 
 @Composable
 fun TetrisGame(game: Game) {
     val state by game.gameState.collectAsState()
 
     TetrisScreen(
-        state,
-        game::onReset,
-        game::onResume,
-        game::onLeftPressed,
-        game::onLeftReleased
+        state = state,
+        onReset = game::onReset,
+        onResume = game::togglePause,
+        onLeftPress = game::onLeftPressed,
+        onLeftRelease = game::onLeftReleased,
+        onRightPress = game::onRightPressed,
+        onRightRelease = game::onRightReleased,
+        onUpPress = game::onUpPressed,
+        onDownPress = game::onDownPressed,
+        onDownRelease = game::onDownReleased,
+        onToggleSound = game::toggleSound,
+        onWipingDone = game::onWipingDone
     )
 
 
@@ -41,11 +44,25 @@ fun TetrisScreen(
     onResume: () -> Unit,
     onLeftPress: () -> Unit,
     onLeftRelease: () -> Unit,
+    onRightPress: () -> Unit,
+    onRightRelease: () -> Unit,
+    onUpPress: () -> Unit,
+    onDownPress: () -> Unit,
+    onDownRelease: () -> Unit,
+    onToggleSound: () -> Unit,
+    onWipingDone: () -> Unit,
 ) {
     Surface {
-        Column() {
+        Column {
             Row(Modifier.weight(1f)) {
-                Board(state)
+                Board(
+                    state.bricks,
+                    state.wipedLines,
+                    state.areaDimensions,
+                    state.state == GameState.State.GAME_OVER,
+                    onWipingDone,
+                    Modifier.fillMaxHeight()
+                )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     NextFigure(state.next)
@@ -59,9 +76,19 @@ fun TetrisScreen(
                     }
                     Button(
                         onClick = { onResume() },
+                        enabled = state.state != GameState.State.GAME_OVER
                     ) {
-                        Text("Resume")
+                        val text = if (state.state == GameState.State.STARTED) "Pause" else "Resume"
+                        Text(text)
                     }
+
+                    Spacer(Modifier.height(32.dp))
+
+                    Button(onToggleSound){
+                        Text(if (state.soundEnabled) "Sound" else "S̶o̶u̶n̶d̶")
+                    }
+
+                    Spacer(Modifier.height(32.dp))
 
                     Text("Level: ${state.level}")
 
@@ -69,60 +96,46 @@ fun TetrisScreen(
                 }
             }
 
-            val isource = remember { MutableInteractionSource() }
-            val isLeftPressed = isource.collectIsPressedAsState()
+            Row(
+                Modifier
+                    .height(100.dp)
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ControlButton("←", onLeftPress, onLeftRelease, Modifier.weight(1f))
 
-            Row(Modifier.height(100.dp).padding(8.dp)) {
-                Button(
-                    onClick = { },
-                    interactionSource = isource,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                    /* .pointerInput(Unit) {
-                        detectTapGestures(onPress = {
-                            onLeftPress()
-                            awaitRelease()
-                            onLeftRelease()
-                        })
-                    }*/
-                ) {
-                    Text("←")
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
+                    ControlButton("↑", onUpPress, {}, Modifier.weight(1f))
+                    ControlButton("↓", onDownPress, onDownRelease, Modifier.weight(1f))
                 }
-                Spacer(Modifier.width(8.dp))
-                Column(Modifier.weight(1f)) {
-                    Button({}, modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        Text("↑")
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Button({}, modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        Text("↓")
-                    }
-                }
-                Spacer(Modifier.width(8.dp))
-                Button({}, modifier = Modifier.weight(1f).fillMaxHeight()) {
-                    Text("→")
-                }
+
+                ControlButton("→", onRightPress, onRightRelease, Modifier.weight(1f))
             }
         }
     }
+
 }
 
 @Composable
-fun NextFigure(next: List<Brick>) {
-    Canvas(Modifier.aspectRatio(3 / 4f).fillMaxWidth()) {
-        drawRect(Color.Black)
+fun ControlButton(
+    text: String,
+    onPress: () -> Unit,
+    onRelease: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val iSource = remember { MutableInteractionSource() }
+    val isPressed by iSource.collectIsPressedAsState()
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            onPress()
+        } else {
+            onRelease()
+        }
+    }
+    Button({}, interactionSource = iSource, modifier = modifier.fillMaxSize()) {
+        Text(text, fontSize = 18.sp, fontWeight = FontWeight.Black)
     }
 }
 
-@Composable
-fun Board(state: GameState) {
-    Canvas(
-        Modifier
-            .fillMaxHeight()
-            .aspectRatio(state.areaDimensions.run { width / height.toFloat() })
-    ) {
-        drawRect(Color.Blue)
 
-    }
-}

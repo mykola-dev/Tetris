@@ -5,20 +5,19 @@
 package ds.tetris.game
 
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import ds.tetris.game.Direction.*
 import ds.tetris.game.figures.Figure
 import ds.tetris.game.figures.FigureFactory
-import ds.tetris.game.job.KeyCoroutine
+import ds.tetris.game.job.KeysJob
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlin.random.Random
 
@@ -28,14 +27,13 @@ class Game(
     private val soundtrack: Soundtrack,
     private val log: Napier,
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
-    //override val coroutineContext: CoroutineContext = SupervisorJob()
-
-    private val state = MutableStateFlow(GameState())
-    val gameState: StateFlow<GameState> = state
 
     private val board: Board = Board()
+    private val state = MutableStateFlow(
+        GameState(areaDimensions = IntSize(board.width, board.height))
+    )
+    val gameState: StateFlow<GameState> = state.asStateFlow()
 
-    //var area: BitMatrix = BitMatrix.createArea(AREA_WIDTH, AREA_HEIGHT)
 
     private lateinit var currentFigure: Figure
     private lateinit var nextFigure: Figure
@@ -54,253 +52,219 @@ class Game(
         }
     }
 
-    private val soundEnabled: Boolean get() = state.value.soundEnabled
+    private val isRunning: Boolean get() = state.value.state == GameState.State.STARTED
 
+    private val keysJob = KeysJob(coroutineContext)
+    private val downKey = Channel<Unit>()
 
-    private val isStarted: Boolean get() = state.value.state == GameState.State.STARTED
-    private val isPaused: Boolean get() = state.value.state == GameState.State.PAUSED
+    init {
+        launch {
+            keysJob.channel.consumeEach {
+                if (isRunning) {
+                    if (it == DOWN) downKey.trySend(Unit)
+                    else currentFigure.tryMove(it)
+                }
+            }
+        }
 
-    private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(this, 30) {
-        score.awardSpeedUp()
-        //fallActor.offer(Unit)
+        start()
     }
-    private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(this) {
-        //board.moveFigure(LEFT.movement)
-    }
-    private var rightKeyCoroutine: KeyCoroutine = KeyCoroutine(this) {
-        //board.moveFigure(RIGHT.movement)
-    }
 
-/*    private val fallFlow = MutableSharedFlow<Unit>() {
+    private var gameLoop: Job? = null
 
-    }*/
-
-    private val keysChannel: ReceiveChannel<Direction> = Channel()
-
-
-    private val fallActor = launch {
-        nextFigure = randomFigure(false)
+    private fun provideGameLoop() = launch {
+        nextFigure = randomFigure()
         while (isActive) {
             var falling = true
 
             currentFigure = nextFigure
             currentFigure.moveToStart()
-            nextFigure = randomFigure(false)
+            nextFigure = randomFigure()
+
+            draw()
 
             while (falling) {
-                log.v("tick")
+                log.v("falling:")
                 falling = select {
-                    keysChannel.onReceive {
-                        currentFigure.moveFigure(DOWN.movement)
+                    downKey.onReceive {
+                        score.awardSpeedUp()
+                        currentFigure.tryMove(DOWN)
                     }
                     onTimeout(calculateDelay()) {
-                        currentFigure.moveFigure(DOWN.movement)
+                        log.v("tick")
+                        currentFigure.tryMove(DOWN)
                     }
+                }
+            }
+
+            keysJob.pressedKey = null
+
+            if (isGameOver()) {
+                state.update { it.copy(state = GameState.State.GAME_OVER) }
+                soundtrack.play(Sound.GAME_OVER)
+                gameLoop?.cancel()
+            } else {
+                board.bakeFigure(currentFigure)
+
+                val lines = board.getFilledRowsIndices()
+                if (lines.isNotEmpty()) {
+                    log.v("wipe ${lines.size} lines")
+                    soundtrack.play(Sound.WIPE, lines.size)
+                    //board.wipeLines(lines)
+                    score.awardLinesWipe(lines.size)
+                    state.update { it.copy(wipedLines = lines) }
                 }
             }
         }
 
-        /* actor<Unit>(uiContextProvider()) {
-             log("actor started")
-             while (isActive) {
-                 var falling = true
-                 nextFigure = randomFigure(false)
-                 drawPreview()
-                 board.drawFigure()
-                 while (falling) {
-                     falling = select {
-                         onReceive {
-                             board.moveFigure(DOWN.movement)
-                         }
-                         onTimeout(calculateDelay()) {
-                             board.moveFigure(DOWN.movement)
-                         }
-                     }
-                 }
-                 downKeyCoroutine.stop()
-                 if (gameOver()) {
-                     isStarted = false
-                     if (soundEnabled) soundtrack.play(Sound.GAME_OVER)
-                     coroutineContext.cancel()
-                 } else {
-                     board.fixFigure()
-
-                     val lines = board.getFilledLinesIndices()
-                     if (lines.isNotEmpty()) {
-                         if (soundEnabled) soundtrack.play(Sound.WIPE, lines.size)
-                         board.wipeLines(lines)
-                         view.wipeLines(lines)
-                         score.awardLinesWipe(lines.size)
-                     }
-                     nextFigure.position = board.startingPosition(nextFigure)
-                     board.currentFigure = nextFigure
-                 }
-             }
-             view.gameOver()
-             log("actor stopped")
-         }*/
     }
 
-    fun onResume() {
+    fun togglePause() {
+        soundtrack.play(Sound.ROTATE)
         when (state.value.state) {
             GameState.State.PAUSED -> {
-                state.update { it.copy(state = GameState.State.STARTED) }
-            }
-            GameState.State.STOPPED -> {
-
                 state.update { it.copy(state = GameState.State.STARTED) }
             }
             GameState.State.STARTED -> {
                 state.update { it.copy(state = GameState.State.PAUSED) }
             }
+            else -> {}
         }
     }
 
     fun onReset() {
-
+        start()
     }
 
-/*    fun start() {
-        if (isStarted) error("Can't start twice")
-
-        //view.clearArea()
-
-        score.awardStart()
-
-        board.currentFigure = *//*IFigure()*//*randomFigure()
-        //sceneFiller(board, view)
-        fallActor.offer(Unit)
-
-        if (soundEnabled) soundtrack.play(Sound.START)
-    }*/
-
-    /*   fun stop() {
-           stopper.cancel()
-       }*/
-
-    /* fun pause() {
-         fallActor.isActive || return
-         if (soundEnabled) soundtrack.play(Sound.ROTATE)
-         isPaused = !isPaused
-         if (!isPaused)
-             fallActor.offer(Unit)
-     }*/
-
-    /*   private fun drawPreview() {
-           view.clearPreviewArea()
-           nextFigure.points.forEach {
-               view.drawPreviewBlockAt(it.x, it.y, nextFigure.color)
-           }
-           view.invalidate()
-       }*/
-
-    private fun calculateDelay(): Long = if (!isPaused) {
-        (BASE_DELAY - score.level * 50).coerceAtLeast(1)
-    } else {
-        INFINITY
+    fun toggleSound() {
+        val soundEnabled = !state.value.soundEnabled
+        soundtrack.enabled = soundEnabled
+        state.update { it.copy(soundEnabled = soundEnabled) }
     }
 
-    private fun gameOver(): Boolean = currentFigure.offset.y <= 0
+    private fun start() {
+        gameLoop?.cancel()
+        board.clear()
+        gameLoop = provideGameLoop()
+        state.update { it.copy(state = GameState.State.STARTED) }
 
-    private fun randomFigure(bringToStart: Boolean = true): Figure {
-        val figure: Figure = FigureFactory.create()
-        if (bringToStart) {
-            //figure.offset = startingPosition(figure)
-        }
-        return figure
+        sceneFiller(board)   // todo
     }
 
-    //fun getTopBrickLine() = board.matrix.array.indexOfFirst { !it.all { !it } }
+    private fun calculateDelay(): Long = (BASE_DELAY - score.level * 50).coerceAtLeast(1)
+
+    private fun isGameOver(): Boolean = currentFigure.offset.y <= 0
+
+    private fun randomFigure(): Figure = FigureFactory.create()
 
     fun onLeftPressed() {
-        log.v("left pressed")
-        if (isStarted) leftKeyCoroutine.start()
+        keysJob.pressedKey = LEFT
         playMoveSound()
     }
 
     fun onRightPressed() {
-        if (isStarted) rightKeyCoroutine.start()
+        keysJob.pressedKey = RIGHT
         playMoveSound()
     }
 
     fun onDownPressed() {
-        if (isStarted) downKeyCoroutine.start()
+        keysJob.pressedKey = DOWN
         playMoveSound()
     }
 
     fun onUpPressed() {
-        if (isStarted) rotateFigure()
-        if (soundEnabled) soundtrack.play(Sound.ROTATE)
+        currentFigure.rotateFigure()
+        soundtrack.play(Sound.ROTATE)
     }
 
-    fun onDownReleased() = downKeyCoroutine.stop()
     fun onLeftReleased() {
-        log.v("left released")
-        leftKeyCoroutine.stop()
+        keysJob.pressedKey = null
     }
-    fun onRightReleased() = rightKeyCoroutine.stop()
+
+    fun onRightReleased() {
+        keysJob.pressedKey = null
+    }
+
+    fun onDownReleased() {
+        keysJob.pressedKey = null
+    }
+
+    fun onWipingDone() {
+        board.wipeLines(state.value.wipedLines)
+        state.update { it.copy(wipedLines = emptyList()) }
+    }
 
     private fun playMoveSound() {
-        if (soundEnabled) soundtrack.play(Sound.MOVE, (Random.nextInt(4) + 1).toInt())
+        soundtrack.play(Sound.MOVE, (Random.nextInt(4) + 1))
     }
 
-    private fun Figure.moveFigure(movement: IntOffset): Boolean {
-        /* canMove(movement, figure) || return false
-         clearFigure(figure)
+    /**
+     * @return if falling
+     */
+    private fun Figure.tryMove(direction: Direction): Boolean {
+        if (!isRunning) return true
+        if (!canMove(direction.movement)) return false
 
-         // invalidate ghost
-         if (movement.x != 0) figure.ghost = null
+        this.offset += direction.movement
 
-         figure.position += movement
-         drawFigure()*/
+        draw()
+
         return true
     }
 
-    private fun canMove(movement: IntOffset, figure: Figure): Boolean = figure
-        .points
+    private fun Figure.calculateDistance() {
+        for (i in 0 until board.height - offset.y) {
+            val movement = IntOffset(0, i)
+            if (!this.canMove(movement)) {
+                this.distance = i - 1
+                break
+            }
+        }
+    }
+
+    private fun Figure.canMove(movement: IntOffset): Boolean = this
+        .getPoints()
         .all {
             val nextPoint = it + movement
             !nextPoint.outOfArea() && board.matrix[nextPoint] == null
         }
 
-    private fun IntOffset.outOfArea(): Boolean = x >= AREA_WIDTH || x < 0 || y >= AREA_HEIGHT || y < 0
+    private fun IntOffset.outOfArea(): Boolean = x >= board.width || x < 0 || y >= board.height || y < 0
 
     private fun Figure.moveToStart() {
-        this.offset = IntOffset((AREA_WIDTH - this.matrix.width) / 2, 0)
+        this.offset = IntOffset((board.width - this.matrix.width) / 2, 0)
     }
 
-    private fun rotateFigure() = with(currentFigure) {
+    private fun Figure.rotateFigure() {
         rotate()
 
         // edge cases
-        while (!points.all { it.x >= 0 }) {
+        while (!getPoints().all { it.x >= 0 }) {
             offset += RIGHT.movement
         }
-        while (!points.all { it.x < AREA_WIDTH }) {
+        while (!getPoints().all { it.x < board.width }) {
             offset += LEFT.movement
         }
-        while (!points.all { it.y < AREA_HEIGHT }) {
+        while (!getPoints().all { it.y < board.height }) {
             offset += UP.movement
         }
 
-        // try to fix unexpected collisions
-        if (!points.all { board.matrix[it] == null }) {
-            if (canMove(RIGHT.movement, this))
+        // try to fix unexpected collisions todo refactor
+        if (board.collides(this)) {
+            if (canMove(RIGHT.movement))
                 offset += RIGHT.movement
-            else if (canMove(LEFT.movement, this))
+            else if (canMove(LEFT.movement))
                 offset += LEFT.movement
         }
 
+        draw()
 
-        /* if (points.all { !area[it] }) {
-             clearFigure(currentFigure)
-             currentFigure = newFigure
-             currentFigure.ghost = null
-             drawFigure()
-         }*/
     }
 
     private fun draw() {
-        //val bricks =
+        log.v("draw")
+        currentFigure.calculateDistance()
+        val bricks = board.getBricks() + currentFigure.allBricks
+        state.update { it.copy(bricks = bricks) }
     }
 }

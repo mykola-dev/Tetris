@@ -13,7 +13,7 @@ class Score(private val callback: Score.() -> Unit) {
                 awardLevelUp()
         }
 
-    var level: Int = 0
+    var level: Int = 1
 
     fun awardSpeedUp() {
         points += level

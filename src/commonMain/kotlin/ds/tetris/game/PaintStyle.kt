@@ -9,6 +9,6 @@ import androidx.compose.ui.graphics.Color
 sealed interface PaintStyle {
     val color: Color
 
-    class Fill(override val color: Color) : PaintStyle
-    class Stroke(override val color: Color) : PaintStyle
+    data class Fill(override val color: Color) : PaintStyle
+    data class Stroke(override val color: Color) : PaintStyle
 }

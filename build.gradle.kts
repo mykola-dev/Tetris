@@ -183,7 +183,7 @@ compose {
         }
     }
 
-    /*android {
+/*    android {
         useAndroidX = true
         androidxVersion = "1.2.0"
     }*/

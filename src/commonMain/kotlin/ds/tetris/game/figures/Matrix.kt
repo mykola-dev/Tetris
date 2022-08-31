@@ -10,16 +10,16 @@ import ds.tetris.game.PaintStyle
 interface Matrix<T> {
 
     val array: Array<Array<T>>
-    val width: Int
-    val height: Int
+    val width: Int get() = array[0].size
+    val height: Int get() = array.size
 
     fun rotate() {
         val copy = array.copyOf().map { it.copyOf() }
 
-        for (r in array.indices) {
-            val row = array[r]
-            for (c in row.indices) {
-                array[r][c] = copy[row.size - c - 1][r]
+        array.forEachIndexed { ri, r ->
+            r.forEachIndexed { ci, _ ->
+                array[ri][ci] = copy[r.size - ci - 1][ri]
+
             }
         }
     }
@@ -38,10 +38,6 @@ interface Matrix<T> {
 
 class BitMatrix(override val array: Array<Array<Boolean>>) : Matrix<Boolean> {
 
-    override val width: Int get() = array[0].size
-    override val height: Int get() = array.size
-
-
     override fun toString(): String {
         return array.joinToString("") {
             it.map { on -> if (on) '■' else '·' }.joinToString("") + "\n"
@@ -49,16 +45,10 @@ class BitMatrix(override val array: Array<Array<Boolean>>) : Matrix<Boolean> {
     }
 
     companion object {
-
         operator fun invoke(builder: BitMatrixBuilder.() -> Unit): BitMatrix {
             val context = BitMatrixBuilder()
             context.builder()
             return BitMatrix(context.getArray())
-        }
-
-        fun createArea(width: Int, height: Int): BitMatrix {
-            val array = Array(height) { y -> Array(width) { x -> false } }
-            return BitMatrix(array)
         }
     }
 
@@ -77,6 +67,9 @@ class BitMatrixBuilder {
         .toTypedArray()
 }
 
-class BoardMatrix(override val width: Int, override val height: Int) : Matrix<PaintStyle?> {
-    override val array: Array<Array<PaintStyle?>> = Array(height) { y -> Array(width) { x -> null } }
+class BoardMatrix(override val array: Array<Array<PaintStyle?>>) : Matrix<PaintStyle?> {
+    companion object {
+        operator fun invoke(width: Int, height: Int): BoardMatrix = BoardMatrix(Array(height) { Array(width) { null } })
+    }
+
 }

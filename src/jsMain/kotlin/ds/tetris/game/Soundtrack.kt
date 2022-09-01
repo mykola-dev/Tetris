@@ -1,7 +1,8 @@
 package ds.tetris.game
 
-actual class Soundtrack {
-    actual fun play(sound: Sound, variant: Int) {
+class WebSoundtrack() : Soundtrack() {
+
+    override fun doPlay(sound: Sound, variant: Int) {
         // todo
     }
 }

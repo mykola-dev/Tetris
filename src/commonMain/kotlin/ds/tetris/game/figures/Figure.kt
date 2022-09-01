@@ -15,6 +15,7 @@ import ds.tetris.game.colors
 data class Brick(
     val offset: IntOffset,
     val style: PaintStyle,
+    val isFigure: Boolean = false
 )
 
 internal data class Figure(
@@ -44,12 +45,11 @@ internal data class Figure(
     }
 
     val allBricks: List<Brick>
-        get() = getPoints().map { Brick(it, PaintStyle.Fill(color)) } + getGhostPoints().map { Brick(it, PaintStyle.Stroke(color)) }
+        get() = getPoints().map { Brick(it, PaintStyle.Fill(color), true) } + getGhostPoints().map { Brick(it, PaintStyle.Stroke(color)) }
 }
 
 internal object FigureFactory {
 
     fun create(): Figure = Figure(figures.random(), IntOffset(0, 0))
 
-    //fun createNext(): Figure = Figure(figures.random(), Point(0, 0))
 }

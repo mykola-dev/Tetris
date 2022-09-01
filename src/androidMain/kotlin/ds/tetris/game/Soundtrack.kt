@@ -1,13 +1,24 @@
 package ds.tetris.game
 
 import android.content.Context
+import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.SoundPool
+import androidx.core.content.getSystemService
 import ds.tetris.android.R
 
 class AndroidSoundtrack(context: Context) : Soundtrack() {
 
-    private var pool = SoundPool(10, AudioManager.STREAM_MUSIC, 0)
+    private val attributes = AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_GAME)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+        .build()
+
+    private var pool = SoundPool.Builder()
+        .setAudioAttributes(attributes)
+        .setMaxStreams(10)
+        .build()
+
     private val move1 = pool.load(context, R.raw.move1, 1)
     private val move2 = pool.load(context, R.raw.move2, 1)
     private val move3 = pool.load(context, R.raw.move3, 1)
@@ -20,6 +31,8 @@ class AndroidSoundtrack(context: Context) : Soundtrack() {
     private val gameOver = pool.load(context, R.raw.game_over, 1)
     private val rotate = pool.load(context, R.raw.rotate, 1)
     private val levelUp = pool.load(context, R.raw.level_up, 1)
+
+    //val audioManager = context.getSystemService<AudioManager>()
 
     override fun doPlay(sound: Sound, variant: Int) {
         val clip = when (sound) {

@@ -26,10 +26,12 @@ internal class Board(val width: Int = AREA_WIDTH, val height: Int = AREA_HEIGHT)
         }
     }.filterNotNull()
 
-    fun getFilledRowsIndices(): List<Int> = matrix.array
+    fun getFilledRowsIndices(): Set<Int> = matrix.array
         .mapIndexed { i, row -> i to row }
         .filter { it.second.all { it != null } }
         .map { it.first }
+        .toSet()
+
 
     fun clear() {
         matrix = BoardMatrix(width, height)
@@ -37,7 +39,7 @@ internal class Board(val width: Int = AREA_WIDTH, val height: Int = AREA_HEIGHT)
 
     fun collides(figure: Figure): Boolean = figure.getPoints().any { matrix[it] != null }
 
-    fun wipeLines(lines: List<Int>) {
+    fun wipeLines(lines: Set<Int>) {
         val newMatrix = matrix.array.filterIndexed { i, _ -> i !in lines }.toMutableList()
         repeat(lines.size) {
             newMatrix.add(0, Array(width) { null })
@@ -45,7 +47,5 @@ internal class Board(val width: Int = AREA_WIDTH, val height: Int = AREA_HEIGHT)
         matrix = BoardMatrix(newMatrix.toTypedArray())
     }
 
-
-    //fun getTopBrickLine() = matrix.array.indexOfFirst { !it.all { !it } }
 
 }

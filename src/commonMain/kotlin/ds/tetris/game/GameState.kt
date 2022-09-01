@@ -12,7 +12,7 @@ data class GameState(
     val next: List<Brick> = emptyList(),
     val score: Int = 0,
     val level: Int = 1,
-    val wipedLines: List<Int> = emptyList(),
+    val wipedLines: Set<Int> = emptySet(),
     val soundEnabled: Boolean = true,
     val state: State = State.PAUSED,
     val areaDimensions: IntSize

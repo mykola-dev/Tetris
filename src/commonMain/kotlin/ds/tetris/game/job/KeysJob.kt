@@ -39,7 +39,7 @@ class KeysJob(override val coroutineContext: CoroutineContext) : CoroutineScope 
                 } else {
                     delay(delay)
                 }
-            }
+            } ?: delay(1) // js hack todo optimize
         }
     }
 

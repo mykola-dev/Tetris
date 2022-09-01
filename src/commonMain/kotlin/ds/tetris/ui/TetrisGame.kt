@@ -3,9 +3,9 @@ package ds.tetris.ui
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.Button
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,17 +54,17 @@ fun TetrisScreen(
 ) {
     Surface {
         Column {
-            Row(Modifier.weight(1f)) {
+            Row {
                 Board(
                     state.bricks,
                     state.wipedLines,
                     state.areaDimensions,
                     state.state == GameState.State.GAME_OVER,
                     onWipingDone,
-                    Modifier.fillMaxHeight()
+                    Modifier.weight(1f)
                 )
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.requiredWidth(120.dp)) {
                     NextFigure(state.next)
 
                     Spacer(Modifier.height(32.dp))
@@ -82,23 +82,21 @@ fun TetrisScreen(
                         Text(text)
                     }
 
-                    Spacer(Modifier.height(32.dp))
-
-                    Button(onToggleSound){
+                    Button(onToggleSound) {
                         Text(if (state.soundEnabled) "Sound" else "S̶o̶u̶n̶d̶")
                     }
 
                     Spacer(Modifier.height(32.dp))
 
-                    Text("Level: ${state.level}")
+                    Text("Level: ${state.level}", color = Palette.level)
 
-                    Text("Score: ${state.score}")
+                    Text("Score: ${state.score}", color = Palette.score)
                 }
             }
 
             Row(
                 Modifier
-                    .height(100.dp)
+                    .height(160.dp)
                     .padding(8.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)

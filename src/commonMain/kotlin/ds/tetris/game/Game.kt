@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.IntSize
 import ds.tetris.game.Direction.*
 import ds.tetris.game.figures.Figure
 import ds.tetris.game.figures.FigureFactory
+import ds.tetris.game.figures.figures
 import ds.tetris.game.job.KeysJob
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.*
@@ -148,7 +149,7 @@ class Game(
         gameLoop = provideGameLoop()
         state.update { it.copy(state = GameState.State.STARTED) }
 
-        sceneFiller(board)   // todo
+        //sceneFiller(board)   // todo
     }
 
     private fun calculateDelay(): Long = (BASE_DELAY - score.level * 50).coerceAtLeast(1)
@@ -191,7 +192,8 @@ class Game(
 
     fun onWipingDone() {
         board.wipeLines(state.value.wipedLines)
-        state.update { it.copy(wipedLines = emptyList()) }
+        currentFigure.calculateDistance()
+        state.update { it.copy(wipedLines = emptySet(), bricks =  board.getBricks() + currentFigure.allBricks) }
     }
 
     private fun playMoveSound() {
@@ -203,6 +205,7 @@ class Game(
      */
     private fun Figure.tryMove(direction: Direction): Boolean {
         if (!isRunning) return true
+        if (state.value.wipedLines.isNotEmpty()) return true    // todo remove?
         if (!canMove(direction.movement)) return false
 
         this.offset += direction.movement
@@ -262,9 +265,8 @@ class Game(
     }
 
     private fun draw() {
-        log.v("draw")
+        //log.v("draw")
         currentFigure.calculateDistance()
-        val bricks = board.getBricks() + currentFigure.allBricks
-        state.update { it.copy(bricks = bricks) }
+        state.update { it.copy(bricks =  board.getBricks().filter { it.offset.y !in state.value.wipedLines } + currentFigure.allBricks, next = nextFigure.allBricks) }
     }
 }

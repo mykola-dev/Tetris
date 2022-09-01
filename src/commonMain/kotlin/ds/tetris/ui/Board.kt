@@ -4,6 +4,7 @@
 
 package ds.tetris.ui
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -19,15 +20,14 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawStyle
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.*
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ds.tetris.game.PaintStyle
 import ds.tetris.game.figures.Brick
+import ds.tetris.ui.Palette.spectrumColors
 
 private const val gap = 2
 private const val radius = 4
@@ -39,34 +39,84 @@ enum class AnimationPhase {
 @Composable
 fun Board(
     bricks: List<Brick>,
-    wipedLines: List<Int>,
-    size: IntSize,
+    wipedLines: Set<Int>,
+    boardSize: IntSize,
     gameOver: Boolean,
     onWipingDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier.aspectRatio(size.width / size.height.toFloat()), contentAlignment = Alignment.Center) {
+    Box(modifier.aspectRatio(boardSize.width / boardSize.height.toFloat()), contentAlignment = Alignment.Center) {
         var phase: AnimationPhase by remember { mutableStateOf(AnimationPhase.IDLE) }
-        if (wipedLines.isNotEmpty()) {
-            if (phase == AnimationPhase.IDLE) phase = AnimationPhase.WIPING
 
-            onWipingDone()
+        val wipeColorAnimated: Int by animateIntAsState(
+            targetValue = if (phase == AnimationPhase.WIPING) 7 else 0,
+            animationSpec = tween(200, easing = LinearEasing)
+        ) { value ->
+            if (value == 7) phase = AnimationPhase.SHIFTING
         }
-
-        LaunchedEffect(phase) {
-
-
+        val wipeSizeAnimated: Float by animateFloatAsState(
+            targetValue = if (phase == AnimationPhase.SHIFTING) 1f else 0f,
+            animationSpec = tween(200, easing = CubicBezierEasing(0.0f, 0.0f, 0.8f, 0.1f))
+        ) { value ->
+            if (value == 1f) {
+                onWipingDone()
+                phase = AnimationPhase.IDLE
+            }
         }
 
         Canvas(Modifier.fillMaxSize()) {
-            drawRect(Palette.board)
 
-            if (!gameOver) {
-                drawBricks(bricks, size)
-            } else {
-                drawBricks(bricks.map { it.copy(style = PaintStyle.Fill(Color.Red)) }, size)
+            drawRect(Palette.board)
+            val brickSize = this.size.width / boardSize.width
+
+            if (phase in setOf(AnimationPhase.IDLE, AnimationPhase.WIPING)) {
+
+                if (!gameOver) {
+                    drawBricks(bricks, brickSize)
+                } else {
+                    drawBricks(bricks.map { it.copy(style = PaintStyle.Fill(Color.Red)) }, brickSize)
+                }
             }
 
+            when (phase) {
+                AnimationPhase.WIPING -> {
+                    wipedLines.forEach { y ->
+                        (0 until boardSize.width)
+                            .map { x -> Brick(IntOffset(x, y), PaintStyle.Fill(spectrumColors[wipeColorAnimated])) }
+                            .let { drawBricks(it, brickSize) }
+                    }
+                }
+                AnimationPhase.SHIFTING -> {
+                    val groupedBricks = bricks.groupBy { b ->
+                        wipedLines.firstOrNull { b.offset.y < it && !b.isFigure } ?: -1
+                    }
+
+                    wipedLines.reversed().forEachIndexed { i, row ->
+                        val selectedBricks = groupedBricks[row] ?: return@forEachIndexed
+                        //Napier.v("grouped bricks for $row: ${selectedBricks.size}")
+                        val y = (row) * brickSize
+                        val yOffset = wipeSizeAnimated * brickSize * (i + 1)
+
+                        withTransform({
+                            inset(0f, 0f, 0f, size.height - y)
+                            translate(0f, yOffset)
+                        }) {
+                            //drawRect(Color.White)
+                            this.drawBricks(selectedBricks, brickSize)
+                        }
+                    }
+                    // draw rest
+                    groupedBricks[-1]?.let {
+                        drawBricks(it, brickSize)
+                    }
+
+                }
+                AnimationPhase.IDLE -> {
+                    if (wipedLines.isNotEmpty()) {
+                        phase = AnimationPhase.WIPING
+                    }
+                }
+            }
 
         }
 
@@ -80,15 +130,14 @@ fun Board(
 
 @Composable
 fun NextFigure(next: List<Brick>) {
-    Canvas(Modifier.aspectRatio(1f)) {
+    Canvas(Modifier.aspectRatio(1f).padding(24.dp)) {
+        val brickSize = this.size.width / 4
         drawRect(Color.Transparent)
-        drawBricks(next, IntSize(4, 4))
+        drawBricks(next, brickSize)
     }
 }
 
-fun DrawScope.drawBricks(bricks: List<Brick>, size: IntSize) {
-
-    val brickSize = this.size.width / size.width
+fun DrawScope.drawBricks(bricks: List<Brick>, brickSize: Float) {
     val rectSize = Size(brickSize - gap * 2, brickSize - gap * 2)
     val radius = CornerRadius(radius.dp.toPx(), radius.dp.toPx())
     bricks.forEach { brick ->

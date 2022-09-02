@@ -58,7 +58,6 @@ kotlin {
                 implementation(compose.material)
                 implementation(compose.runtime)
 
-                //implementation("org.jetbrains.kotlin:kotlin-stdlib")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
                 implementation("io.insert-koin:koin-core:$koinVersion")
                 //implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")    doesn't work
@@ -133,35 +132,6 @@ android {
         }
     }
 
-/*    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs += listOf(
-            //"-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi",
-            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-opt-in=androidx.compose.material.ExperimentalMaterialApi",
-            "-opt-in=com.google.accompanist.pager.ExperimentalPagerApi",
-            "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
-            "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
-            "-opt-in=androidx.compose.ui.text.ExperimentalTextApi",
-            "-opt-in=coil.annotation.ExperimentalCoilApi",
-            "-XXLanguage:+InlineClasses"
-        )
-
-    }*/
-
-    /*  buildFeatures {
-          compose = true
-      }
-
-      composeOptions {
-          kotlinCompilerExtensionVersion = "1.2.0"
-      }
-
-      packagingOptions {
-          resources {
-              excludes += "/META-INF/{AL2.0,LGPL2.1}"
-          }
-      }*/
 }
 
 compose {

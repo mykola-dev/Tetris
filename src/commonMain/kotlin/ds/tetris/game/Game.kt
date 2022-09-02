@@ -9,8 +9,7 @@ import androidx.compose.ui.unit.IntSize
 import ds.tetris.game.Direction.*
 import ds.tetris.game.figures.Figure
 import ds.tetris.game.figures.FigureFactory
-import ds.tetris.game.figures.figures
-import ds.tetris.game.job.KeysJob
+import ds.tetris.game.job.KeysProducer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -55,12 +54,12 @@ class Game(
 
     private val isRunning: Boolean get() = state.value.state == GameState.State.STARTED
 
-    private val keysJob = KeysJob(coroutineContext)
+    private val keysProducer = KeysProducer(coroutineContext)
     private val downKey = Channel<Unit>()
 
     init {
         launch {
-            keysJob.channel.consumeEach {
+            keysProducer.outputChannel.consumeEach {
                 if (isRunning) {
                     if (it == DOWN) downKey.trySend(Unit)
                     else currentFigure.tryMove(it)
@@ -98,7 +97,7 @@ class Game(
                 }
             }
 
-            keysJob.pressedKey = null
+            keysProducer(null)
 
             if (isGameOver()) {
                 state.update { it.copy(state = GameState.State.GAME_OVER) }
@@ -159,17 +158,17 @@ class Game(
     private fun randomFigure(): Figure = FigureFactory.create()
 
     fun onLeftPressed() {
-        keysJob.pressedKey = LEFT
+        keysProducer(LEFT)
         playMoveSound()
     }
 
     fun onRightPressed() {
-        keysJob.pressedKey = RIGHT
+        keysProducer(RIGHT)
         playMoveSound()
     }
 
     fun onDownPressed() {
-        keysJob.pressedKey = DOWN
+        keysProducer(DOWN)
         playMoveSound()
     }
 
@@ -179,15 +178,15 @@ class Game(
     }
 
     fun onLeftReleased() {
-        keysJob.pressedKey = null
+        keysProducer(null)
     }
 
     fun onRightReleased() {
-        keysJob.pressedKey = null
+        keysProducer(null)
     }
 
     fun onDownReleased() {
-        keysJob.pressedKey = null
+        keysProducer(null)
     }
 
     fun onWipingDone() {

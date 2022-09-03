@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import ds.tetris.game.PaintStyle
 import ds.tetris.game.figures.Brick
 import ds.tetris.ui.Palette.spectrumColors
+import ds.tetris.util.log
+import kotlin.math.absoluteValue
 
 private const val gap = 2
 private const val radius = 4
@@ -38,11 +40,14 @@ enum class AnimationPhase {
 
 @Composable
 fun Board(
-    bricks: List<Brick>,
+    boardBricks: List<Brick>,
+    figure: List<Brick>,
     wipedLines: Set<Int>,
+    rotationPivot: Offset?,
     boardSize: IntSize,
     gameOver: Boolean,
     onWipingDone: () -> Unit,
+    onRotationDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier.aspectRatio(boardSize.width / boardSize.height.toFloat()), contentAlignment = Alignment.Center) {
@@ -64,6 +69,60 @@ fun Board(
             }
         }
 
+        val (mainBody, ghostBody) = remember(figure) { figure.partition { it.isFigure } }
+        val degrees = remember { Animatable(0f) }
+
+        var previousFigure by remember(rotationPivot) { mutableStateOf(mainBody) }
+        var direction by remember(mainBody) { mutableStateOf(mainBody.getPosition() - previousFigure.getPosition()) }
+        val translateAnimation = remember { Animatable(0f) }
+        var transitionRunning by remember { mutableStateOf(false) }
+
+        val animationKey by produceState(0, direction) {
+            log.v("on key $direction curr=${mainBody.getPosition()} prev=${previousFigure.getPosition()}")
+
+            if (direction.x.absoluteValue > 2 || direction.y.absoluteValue > 2) {
+                log.w("too fast")
+                value++
+            } else if (direction.y < -1) {
+                log.w("new figure")
+                value++
+            } else if (!transitionRunning && direction != IntOffset.Zero) {
+                transitionRunning = true
+                value++
+            } else {
+                value
+            }
+        }
+
+        val rememberMainBody by rememberUpdatedState(mainBody)
+        LaunchedEffect(animationKey) {
+            log.v("dir=$direction key=$animationKey")
+            try {
+                //if (direction.x.absoluteValue > 2 || direction.y.absoluteValue > 2) error("too fast")
+                //if (direction.y < -1) error("new figure")
+                translateAnimation.snapTo(0f)
+                translateAnimation.animateTo(1f, tween(200, easing = LinearEasing))
+            } catch (e: Exception) {
+                //e.printStackTrace()
+                log.e(e.message!!)
+            } finally {
+                log.v("finally")
+                direction = IntOffset(0, 0)
+                previousFigure = rememberMainBody
+                transitionRunning = false
+                translateAnimation.snapTo(0f)
+            }
+        }
+
+        if (rotationPivot != null) {
+            LaunchedEffect(rotationPivot) {
+                degrees.animateTo(90f, tween(100))
+                onRotationDone()
+                //previousFigure = mainBody
+                degrees.snapTo(0f)
+            }
+        }
+
         Canvas(Modifier.fillMaxSize()) {
 
             drawRect(Palette.board)
@@ -72,10 +131,24 @@ fun Board(
             if (phase in setOf(AnimationPhase.IDLE, AnimationPhase.WIPING)) {
 
                 if (!gameOver) {
-                    drawBricks(bricks, brickSize)
+                    drawBricks(boardBricks + ghostBody, brickSize)
                 } else {
-                    drawBricks(bricks.map { it.copy(style = PaintStyle.Fill(Color.Red)) }, brickSize)
+                    drawBricks(boardBricks.map { it.copy(style = PaintStyle.Fill(Color.Red)) }, brickSize)
                 }
+            }
+
+            // rotation and translation
+            withTransform({
+                val transFactor = translateAnimation.value * brickSize
+                //log.v("dir=$direction trans=$transFactor pos=${mainBody.getPosition()}")
+
+                if (rotationPivot == null && transitionRunning) {
+                    translate(top = transFactor * direction.y, left = transFactor * direction.x)
+                }
+                if (rotationPivot != null) rotate(degrees.value, rotationPivot * brickSize)
+            }) {
+                //val b = if (transitionRunning) previousFigure else mainBody
+                drawBricks(previousFigure, brickSize)
             }
 
             when (phase) {
@@ -87,8 +160,8 @@ fun Board(
                     }
                 }
                 AnimationPhase.SHIFTING -> {
-                    val groupedBricks = bricks.groupBy { b ->
-                        wipedLines.firstOrNull { b.offset.y < it && !b.isFigure } ?: -1
+                    val groupedBricks = (boardBricks + ghostBody).groupBy { b ->
+                        wipedLines.firstOrNull { b.offset.y < it /*&& !b.isFigure*/ } ?: -1
                     }
 
                     wipedLines.reversed().forEachIndexed { i, row ->
@@ -146,3 +219,5 @@ fun DrawScope.drawBricks(bricks: List<Brick>, brickSize: Float) {
         drawRoundRect(brick.style.color, offset, rectSize, radius, style)
     }
 }
+
+private fun List<Brick>.getPosition(): IntOffset = IntOffset(minOfOrNull { it.offset.x } ?: 0, minOfOrNull { it.offset.y } ?: 0)

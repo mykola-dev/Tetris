@@ -9,3 +9,12 @@ The well known brick game written with Kotlin Multiplatform and Jetpack Compose 
 
 
 ![](https://github.com/deviant-studio/Tetris/blob/master/media/qemu-system-i386_2017-11-10_00-11-27.png)
+
+
+todo:  
+js keyboard support
+animated rotation  
+web/java sounds  
+icon resources?  
+deploy with github actions    
+js: double speed bug  

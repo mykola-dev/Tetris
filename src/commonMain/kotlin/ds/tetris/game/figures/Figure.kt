@@ -26,8 +26,13 @@ internal data class Figure(
 
     var distance: Int = 0
 
-    fun rotate() {
-        matrix.rotate()
+    fun rotate(): Figure {
+        val newMatrix = matrix.rotate()
+        val newOffset = IntOffset((matrix.width - newMatrix.width) / 2, (matrix.height - newMatrix.height) / 2) + offset
+        return copy(
+            matrix = newMatrix,
+            offset = newOffset
+        )
     }
 
     fun getPoints(): List<IntOffset> = buildList {

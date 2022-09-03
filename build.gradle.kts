@@ -94,6 +94,7 @@ kotlin {
             languageSettings {
                 optIn("kotlinx.coroutines.ObsoleteCoroutinesApi")
                 optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+                optIn("androidx.compose.ui.ExperimentalComposeUiApi")
             }
         }
     }

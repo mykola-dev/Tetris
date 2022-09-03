@@ -4,6 +4,7 @@
 
 package ds.tetris.game
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import ds.tetris.game.Direction.*
@@ -84,20 +85,18 @@ class Game(
             draw()
 
             while (falling) {
-                log.v("falling:")
                 falling = select {
                     downKey.onReceive {
                         score.awardSpeedUp()
                         currentFigure.tryMove(DOWN)
                     }
                     onTimeout(calculateDelay()) {
-                        log.v("tick")
                         currentFigure.tryMove(DOWN)
                     }
                 }
             }
 
-            keysProducer(null)
+            keysProducer(null)  // break fast falling
 
             if (isGameOver()) {
                 state.update { it.copy(state = GameState.State.GAME_OVER) }
@@ -108,9 +107,7 @@ class Game(
 
                 val lines = board.getFilledRowsIndices()
                 if (lines.isNotEmpty()) {
-                    log.v("wipe ${lines.size} lines")
                     soundtrack.play(Sound.WIPE, lines.size)
-                    //board.wipeLines(lines)
                     score.awardLinesWipe(lines.size)
                     state.update { it.copy(wipedLines = lines) }
                 }
@@ -173,26 +170,41 @@ class Game(
     }
 
     fun onUpPressed() {
-        currentFigure.rotateFigure()
+        val newFigure = currentFigure.rotateFigure()
+
+        val x = currentFigure.matrix.height / 2f + newFigure.offset.x
+        val y = currentFigure.matrix.height / 2f + currentFigure.offset.y
+
+        val offset = Offset(x, y)
+
+        state.update { it.copy(rotationPivot = offset) }
         soundtrack.play(Sound.ROTATE)
     }
 
-    fun onLeftReleased() {
-        keysProducer(null)
-    }
-
-    fun onRightReleased() {
-        keysProducer(null)
-    }
-
-    fun onDownReleased() {
+    fun onKeyReleased() {
         keysProducer(null)
     }
 
     fun onWipingDone() {
         board.wipeLines(state.value.wipedLines)
         currentFigure.calculateDistance()
-        state.update { it.copy(wipedLines = emptySet(), bricks =  board.getBricks() + currentFigure.allBricks) }
+        state.update {
+            it.copy(
+                wipedLines = emptySet(),
+                figure = currentFigure.allBricks,
+                bricks = board.getBricks()
+            )
+        }
+    }
+
+    fun onRotationDone() {
+        currentFigure = currentFigure.rotateFigure().apply { calculateDistance() }
+        state.update {
+            it.copy(
+                rotationPivot = null,
+                figure = currentFigure.allBricks
+            )
+        }
     }
 
     private fun playMoveSound() {
@@ -205,23 +217,27 @@ class Game(
     private fun Figure.tryMove(direction: Direction): Boolean {
         if (!isRunning) return true
         if (state.value.wipedLines.isNotEmpty()) return true    // todo remove?
+        if (state.value.rotationPivot != null) return true
         if (!canMove(direction.movement)) return false
 
         this.offset += direction.movement
 
-        draw()
+        currentFigure.calculateDistance()
+        state.update {
+            it.copy(figure = currentFigure.allBricks)
+        }
 
         return true
     }
 
     private fun Figure.calculateDistance() {
-        for (i in 0 until board.height - offset.y) {
-            val movement = IntOffset(0, i)
-            if (!this.canMove(movement)) {
-                this.distance = i - 1
-                break
+        distance = (board.height - offset.y downTo 1)
+            .firstOrNull {
+                val movement = IntOffset(0, it)
+                this.canMove(movement)
             }
-        }
+            ?: 0
+
     }
 
     private fun Figure.canMove(movement: IntOffset): Boolean = this
@@ -237,35 +253,42 @@ class Game(
         this.offset = IntOffset((board.width - this.matrix.width) / 2, 0)
     }
 
-    private fun Figure.rotateFigure() {
-        rotate()
-
-        // edge cases
-        while (!getPoints().all { it.x >= 0 }) {
-            offset += RIGHT.movement
-        }
-        while (!getPoints().all { it.x < board.width }) {
-            offset += LEFT.movement
-        }
-        while (!getPoints().all { it.y < board.height }) {
-            offset += UP.movement
-        }
-
-        // try to fix unexpected collisions todo refactor
-        if (board.collides(this)) {
-            if (canMove(RIGHT.movement))
+    private fun Figure.rotateFigure(): Figure {
+        val figure = currentFigure.rotate()
+        with(figure) {
+            // edge cases
+            while (getPoints().any { it.x < 0 }) {
                 offset += RIGHT.movement
-            else if (canMove(LEFT.movement))
+            }
+            while (getPoints().any { it.x >= board.width }) {
                 offset += LEFT.movement
+            }
+            while (getPoints().any { it.y >= board.height }) {
+                offset += UP.movement
+            }
+            while (getPoints().any { it.y < 0 }) {
+                offset += DOWN.movement
+            }
+
+            // try to fix unexpected collisions todo refactor
+            if (board.collides(this)) {
+                if (canMove(RIGHT.movement))
+                    offset += RIGHT.movement
+                else if (canMove(LEFT.movement))
+                    offset += LEFT.movement
+            }
         }
-
-        draw()
-
+        return figure
     }
 
     private fun draw() {
-        //log.v("draw")
         currentFigure.calculateDistance()
-        state.update { it.copy(bricks =  board.getBricks().filter { it.offset.y !in state.value.wipedLines } + currentFigure.allBricks, next = nextFigure.allBricks) }
+        state.update {
+            it.copy(
+                bricks = board.getBricks().filter { it.offset.y !in state.value.wipedLines },
+                figure = currentFigure.allBricks,
+                next = nextFigure.allBricks
+            )
+        }
     }
 }

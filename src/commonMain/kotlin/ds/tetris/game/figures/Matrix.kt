@@ -13,17 +13,6 @@ interface Matrix<T> {
     val width: Int get() = array[0].size
     val height: Int get() = array.size
 
-    fun rotate() {
-        val copy = array.copyOf().map { it.copyOf() }
-
-        array.forEachIndexed { ri, r ->
-            r.forEachIndexed { ci, _ ->
-                array[ri][ci] = copy[r.size - ci - 1][ri]
-
-            }
-        }
-    }
-
     operator fun get(row: Int, column: Int): T = array[row][column]
     operator fun set(row: Int, column: Int, value: T) {
         array[row][column] = value
@@ -37,6 +26,19 @@ interface Matrix<T> {
 }
 
 class BitMatrix(override val array: Array<Array<Boolean>>) : Matrix<Boolean> {
+
+    fun rotate(): BitMatrix {
+
+        val newArray = Array(width) { Array(height) { false } }
+
+        array.forEachIndexed { ri, r ->
+            r.forEachIndexed { ci, _ ->
+                newArray[ci][ri] = array[array.size - ri - 1][ci]
+            }
+        }
+
+        return BitMatrix(newArray)
+    }
 
     override fun toString(): String {
         return array.joinToString("") {

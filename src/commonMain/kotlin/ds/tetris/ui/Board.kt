@@ -29,6 +29,7 @@ import ds.tetris.game.PaintStyle
 import ds.tetris.game.figures.Brick
 import ds.tetris.ui.Palette.spectrumColors
 import ds.tetris.util.log
+import kotlin.math.absoluteValue
 
 private const val gap = 2
 private const val radius = 4
@@ -75,20 +76,20 @@ fun Board(
         val rememberMainBody by rememberUpdatedState(mainBody)
         var previousFigure by remember(rotationPivot, animationEnabled) { mutableStateOf(mainBody) }
         val direction = remember(mainBody, previousFigure) { mainBody.getPosition() - previousFigure.getPosition() }
-        var transitionRunning by remember() { mutableStateOf(false) }
+        var transitionRunning by remember { mutableStateOf(false) }
 
         val animationKey by produceState(0, direction) {
-            log.v("on key $direction curr=${mainBody.getPosition()} prev=${previousFigure.getPosition()}")
+            //log.v("on key $direction curr=${mainBody.getPosition()} prev=${previousFigure.getPosition()}")
 
             if (!animationEnabled) {
                 value = 0
-                /* } else if (direction.x.absoluteValue > 1 || direction.y > 1) {
-                     log.w("too fast")
-                     value++*/
-            } else if (direction.y < -1) {
+            } else if (direction.y > 1 || direction.x.absoluteValue > 1) {
+                log.w("too fast")
+                value++
+           /* } else if (direction.y < -1) {
                 log.w("new figure")
                 transitionRunning = false
-                value++
+                value++*/
             } else if (!transitionRunning && direction != IntOffset.Zero) {
                 log.w("starting new animation")
                 transitionRunning = true
@@ -97,22 +98,21 @@ fun Board(
                 // do nothing
             }
         }
-        val translateAnimation = remember { Animatable(0f) }
-
+        val translateAnimation = remember { Animatable(-1f) }
 
         if (animationEnabled) {
             LaunchedEffect(animationKey) {
                 log.v("key=$animationKey")
                 try {
-                    //translateAnimation.snapTo(0f)
-                    translateAnimation.animateTo(1f, tween(100, easing = LinearEasing))
+                    translateAnimation.snapTo(-1f)
+                    translateAnimation.animateTo(0f, tween(100, easing = LinearEasing))
                 } catch (e: Exception) {
                     //e.printStackTrace()
                     log.e(e.message!!)
                 } finally {
                     previousFigure = rememberMainBody
                     transitionRunning = false
-                    translateAnimation.snapTo(0f)
+                    translateAnimation.snapTo(-1f)
                 }
             }
         }
@@ -143,13 +143,13 @@ fun Board(
             if (animationEnabled) {
                 withTransform({
                     val transFactor = translateAnimation.value * brickSize
-                    if (rotationPivot == null && transitionRunning && direction.y >= 0) {
-                        log.d("figure=${previousFigure.getPosition()} dir=$direction animation=${transFactor} isRunning=$transitionRunning y=${brickSize * (direction.y * translateAnimation.value + previousFigure.getPosition().y)}")
+                    if (rotationPivot == null /*&& transitionRunning*/ && direction.y >= 0) {
+                        //log.d("figure=${previousFigure.getPosition()} dir=$direction animation=${transFactor} isRunning=$transitionRunning y=${brickSize * (direction.y * translateAnimation.value + previousFigure.getPosition().y)}")
                         translate(top = transFactor * direction.y, left = transFactor * direction.x)
                     }
                     if (rotationPivot != null) rotate(degrees.value, rotationPivot * brickSize)
                 }) {
-                    drawBricks(previousFigure, brickSize)
+                    drawBricks(mainBody, brickSize)
                 }
             } else {
                 drawBricks(mainBody, brickSize)

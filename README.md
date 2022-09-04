@@ -13,8 +13,6 @@ The well known brick game written with Kotlin Multiplatform and Jetpack Compose 
 
 todo:  
 js keyboard support
-animated rotation  
 web/java sounds  
 icon resources?  
-deploy with github actions    
-js: double speed bug  
+deploy with github actions

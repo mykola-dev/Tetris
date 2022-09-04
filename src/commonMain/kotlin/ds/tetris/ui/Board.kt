@@ -48,6 +48,7 @@ fun Board(
     gameOver: Boolean,
     onWipingDone: () -> Unit,
     onRotationDone: () -> Unit,
+    animationEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier.aspectRatio(boardSize.width / boardSize.height.toFloat()), contentAlignment = Alignment.Center) {
@@ -72,17 +73,19 @@ fun Board(
         val (mainBody, ghostBody) = remember(figure) { figure.partition { it.isFigure } }
         val degrees = remember { Animatable(0f) }
 
-        var previousFigure by remember(rotationPivot) { mutableStateOf(mainBody) }
+        var previousFigure by remember(rotationPivot, animationEnabled) { mutableStateOf(mainBody) }
         var direction by remember(mainBody) { mutableStateOf(mainBody.getPosition() - previousFigure.getPosition()) }
         val translateAnimation = remember { Animatable(0f) }
         var transitionRunning by remember { mutableStateOf(false) }
 
         val animationKey by produceState(0, direction) {
-            log.v("on key $direction curr=${mainBody.getPosition()} prev=${previousFigure.getPosition()}")
+            //log.v("on key $direction curr=${mainBody.getPosition()} prev=${previousFigure.getPosition()}")
 
-            if (direction.x.absoluteValue > 2 || direction.y.absoluteValue > 2) {
+            if (!animationEnabled) {
+                value = 0
+           /* } else if (direction.x.absoluteValue > 2 || direction.y.absoluteValue > 2) {
                 log.w("too fast")
-                value++
+                value++*/
             } else if (direction.y < -1) {
                 log.w("new figure")
                 value++
@@ -95,22 +98,22 @@ fun Board(
         }
 
         val rememberMainBody by rememberUpdatedState(mainBody)
-        LaunchedEffect(animationKey) {
-            log.v("dir=$direction key=$animationKey")
-            try {
-                //if (direction.x.absoluteValue > 2 || direction.y.absoluteValue > 2) error("too fast")
-                //if (direction.y < -1) error("new figure")
-                translateAnimation.snapTo(0f)
-                translateAnimation.animateTo(1f, tween(200, easing = LinearEasing))
-            } catch (e: Exception) {
-                //e.printStackTrace()
-                log.e(e.message!!)
-            } finally {
-                log.v("finally")
-                direction = IntOffset(0, 0)
-                previousFigure = rememberMainBody
-                transitionRunning = false
-                translateAnimation.snapTo(0f)
+        if (animationEnabled) {
+            LaunchedEffect(animationKey) {
+                log.v("dir=$direction key=$animationKey")
+                try {
+                    //if (keyPressed) error("key pressed")
+                    translateAnimation.snapTo(0f)
+                    translateAnimation.animateTo(1f, tween(100, easing = LinearEasing))
+                } catch (e: Exception) {
+                    //e.printStackTrace()
+                    log.e(e.message!!)
+                } finally {
+                    transitionRunning = false
+                    direction = IntOffset(0, 0)
+                    previousFigure = rememberMainBody
+                    translateAnimation.snapTo(0f)
+                }
             }
         }
 
@@ -118,7 +121,6 @@ fun Board(
             LaunchedEffect(rotationPivot) {
                 degrees.animateTo(90f, tween(100))
                 onRotationDone()
-                //previousFigure = mainBody
                 degrees.snapTo(0f)
             }
         }
@@ -138,17 +140,18 @@ fun Board(
             }
 
             // rotation and translation
-            withTransform({
-                val transFactor = translateAnimation.value * brickSize
-                //log.v("dir=$direction trans=$transFactor pos=${mainBody.getPosition()}")
-
-                if (rotationPivot == null && transitionRunning) {
-                    translate(top = transFactor * direction.y, left = transFactor * direction.x)
+            if (animationEnabled) {
+                withTransform({
+                    val transFactor = translateAnimation.value * brickSize
+                    if (rotationPivot == null && transitionRunning) {
+                        translate(top = transFactor * direction.y, left = transFactor * direction.x)
+                    }
+                    if (rotationPivot != null) rotate(degrees.value, rotationPivot * brickSize)
+                }) {
+                    drawBricks(previousFigure, brickSize)
                 }
-                if (rotationPivot != null) rotate(degrees.value, rotationPivot * brickSize)
-            }) {
-                //val b = if (transitionRunning) previousFigure else mainBody
-                drawBricks(previousFigure, brickSize)
+            } else {
+                drawBricks(mainBody, brickSize)
             }
 
             when (phase) {
@@ -203,7 +206,7 @@ fun Board(
 
 @Composable
 fun NextFigure(next: List<Brick>) {
-    Canvas(Modifier.aspectRatio(1f).padding(24.dp)) {
+    Canvas(Modifier.aspectRatio(1f).padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
         val brickSize = this.size.width / 4
         drawRect(Color.Transparent)
         drawBricks(next, brickSize)

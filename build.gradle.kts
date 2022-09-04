@@ -121,17 +121,22 @@ android {
         targetSdk = 32
     }
 
+    signingConfigs {
+       // todo
+    }
+
     buildTypes {
         debug {
 
         }
         release {
-            //signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs["debug"]
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
+
 
 }
 

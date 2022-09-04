@@ -18,7 +18,8 @@ data class GameState(
     val rotationPivot: Offset? = null,
     val soundEnabled: Boolean = true,
     val state: State = State.PAUSED,
-    val areaDimensions: IntSize
+    val areaDimensions: IntSize,
+    val animationEnabled: Boolean = true,
 ) {
     enum class State {
         STARTED, PAUSED, GAME_OVER

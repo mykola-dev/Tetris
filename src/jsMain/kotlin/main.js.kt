@@ -1,4 +1,3 @@
-import androidx.compose.runtime.*
 import androidx.compose.ui.window.Window
 import ds.tetris.di.initKoin
 import ds.tetris.game.Game

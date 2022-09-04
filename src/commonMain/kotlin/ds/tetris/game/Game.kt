@@ -35,7 +35,6 @@ class Game(
     )
     val gameState: StateFlow<GameState> = state.asStateFlow()
 
-
     private lateinit var currentFigure: Figure
     private lateinit var nextFigure: Figure
 
@@ -58,7 +57,10 @@ class Game(
     private val keysProducer = KeysProducer(coroutineContext)
     private val downKey = Channel<Unit>()
 
+    private var gameLoop: Job? = null
+
     init {
+        log.v("init game $this")
         launch {
             keysProducer.outputChannel.consumeEach {
                 if (isRunning) {
@@ -70,8 +72,6 @@ class Game(
 
         start()
     }
-
-    private var gameLoop: Job? = null
 
     private fun provideGameLoop() = launch {
         nextFigure = randomFigure()
@@ -96,7 +96,7 @@ class Game(
                 }
             }
 
-            keysProducer(null)  // break fast falling
+            keysProducer(null)  // break fast falling. doesn't work with physical keys due to a handler bug
 
             if (isGameOver()) {
                 state.update { it.copy(state = GameState.State.GAME_OVER) }
@@ -140,6 +140,7 @@ class Game(
     }
 
     private fun start() {
+        log.i("starting...")
         gameLoop?.cancel()
         board.clear()
         gameLoop = provideGameLoop()
@@ -212,11 +213,11 @@ class Game(
     }
 
     /**
-     * @return if falling
+     * @return if still falling
      */
     private fun Figure.tryMove(direction: Direction): Boolean {
         if (!isRunning) return true
-        if (state.value.wipedLines.isNotEmpty()) return true    // todo remove?
+        if (state.value.wipedLines.isNotEmpty()) return true
         if (state.value.rotationPivot != null) return true
         if (!canMove(direction.movement)) return false
 
@@ -231,10 +232,10 @@ class Game(
     }
 
     private fun Figure.calculateDistance() {
-        distance = (board.height - offset.y downTo 1)
+        distance = (0 until board.height - offset.y)
             .firstOrNull {
-                val movement = IntOffset(0, it)
-                this.canMove(movement)
+                val movement = IntOffset(0, it + 1)
+                !this.canMove(movement)
             }
             ?: 0
 
@@ -270,7 +271,7 @@ class Game(
                 offset += DOWN.movement
             }
 
-            // try to fix unexpected collisions todo refactor
+            // try to fix bricks collisions
             if (board.collides(this)) {
                 if (canMove(RIGHT.movement))
                     offset += RIGHT.movement
@@ -290,5 +291,9 @@ class Game(
                 next = nextFigure.allBricks
             )
         }
+    }
+
+    fun toggleAnimation() {
+        state.update { it.copy(animationEnabled = !it.animationEnabled) }
     }
 }

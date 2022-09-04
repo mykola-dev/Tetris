@@ -5,8 +5,6 @@
 package ds.tetris.game.job
 
 import ds.tetris.game.Direction
-import ds.tetris.util.log
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.produce
@@ -37,7 +35,7 @@ class KeysProducer(override val coroutineContext: CoroutineContext) : CoroutineS
 
                 val delay = when {
                     currentKey == null -> Long.MAX_VALUE
-                    initial -> DEFAULT_START_DELAY
+                    initial && currentKey != Direction.DOWN -> DEFAULT_START_DELAY
                     else -> DEFAULT_DELAY
                 }
                 onTimeout(delay) {

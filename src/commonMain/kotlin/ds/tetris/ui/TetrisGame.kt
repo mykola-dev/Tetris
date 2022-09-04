@@ -3,10 +3,7 @@ package ds.tetris.ui
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
@@ -20,7 +17,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.dp
-import ds.tetris.game.*
+import ds.tetris.game.Game
+import ds.tetris.game.GameState
 
 @Composable
 fun TetrisGame(game: Game) {
@@ -38,6 +36,7 @@ fun TetrisGame(game: Game) {
         onToggleSound = game::toggleSound,
         onWipingDone = game::onWipingDone,
         onRotationDone = game::onRotationDone,
+        onToggleAnimation = game::toggleAnimation
     )
 
 
@@ -56,8 +55,11 @@ fun TetrisScreen(
     onToggleSound: () -> Unit,
     onWipingDone: () -> Unit,
     onRotationDone: () -> Unit,
+    onToggleAnimation: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
+    var keyPressed by remember { mutableStateOf(false) }
+
     Surface(
         Modifier
             .focusRequester(focusRequester)
@@ -67,6 +69,7 @@ fun TetrisScreen(
                     //log.v("${it.key} ${it.type} ${it.utf16CodePoint} ${it.nativeKeyEvent}")
                     when (it.type) {
                         KeyEventType.KeyDown -> {
+                            keyPressed = true
                             when (it.key) {
                                 Key.DirectionLeft -> onLeftPress()
                                 Key.DirectionRight -> onRightPress()
@@ -75,6 +78,7 @@ fun TetrisScreen(
                             }
                         }
                         KeyEventType.KeyUp -> {
+                            keyPressed = false
                             onKeyRelease()
                         }
                     }
@@ -98,13 +102,12 @@ fun TetrisScreen(
                     state.state == GameState.State.GAME_OVER,
                     onWipingDone,
                     onRotationDone,
+                    state.animationEnabled,
                     Modifier.weight(1f)
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.requiredWidth(120.dp)) {
                     NextFigure(state.next)
-
-                    //Spacer(Modifier.height(32.dp))
 
                     Button(
                         onClick = { onReset() },
@@ -123,11 +126,16 @@ fun TetrisScreen(
                         Text(if (state.soundEnabled) "Sound" else "S̶o̶u̶n̶d̶") // todo icon
                     }
 
-                    Spacer(Modifier.height(32.dp))
+                    Spacer(Modifier.height(16.dp))
 
                     Text("Level: ${state.level}", color = Palette.level)
                     Spacer(Modifier.height(8.dp))
                     Text("Score: ${state.score}", color = Palette.score)
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Smooth")
+                        Switch(state.animationEnabled, { onToggleAnimation() })
+                    }
                 }
             }
 

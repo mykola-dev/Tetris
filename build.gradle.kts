@@ -1,6 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.jetbrains.compose.ComposeBuildConfig.composeVersion
 import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
@@ -62,6 +61,7 @@ kotlin {
                 implementation("io.insert-koin:koin-core:$koinVersion")
                 //implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")    doesn't work
                 implementation("io.github.aakira:napier:2.6.1")
+                implementation("com.soywiz.korlibs.korau:korau:2.2.0")
             }
         }
 
@@ -103,14 +103,9 @@ kotlin {
 android {
     sourceSets {
         val main by getting
-        main.java.setSrcDirs(listOf("src/androidMain/kotlin"))
+        main.kotlin.setSrcDirs(listOf("src/androidMain/kotlin"))
         main.res.setSrcDirs(listOf("src/androidMain/res"))
-        main.resources.setSrcDirs(
-            listOf(
-                "src/androidMain/resources",
-                "src/commonMain/resources",
-            )
-        )
+        main.assets.setSrcDirs(listOf("src/commonMain/resources"))
         main.manifest.srcFile("src/androidMain/AndroidManifest.xml")
     }
 
@@ -122,7 +117,7 @@ android {
     }
 
     signingConfigs {
-       // todo
+        // todo
     }
 
     buildTypes {
@@ -151,7 +146,6 @@ compose {
                 packageVersion = "1.0.0"
 
                 windows {
-                    menuGroup = "Compose Examples"
                     // see https://wixtoolset.org/documentation/manual/v3/howtos/general/generate_guids.html
                     upgradeUuid = "18159995-d967-4CD2-8885-77BFA97CFA9F"
                 }

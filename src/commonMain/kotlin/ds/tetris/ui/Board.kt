@@ -86,10 +86,10 @@ fun Board(
             } else if (direction.y > 1 || direction.x.absoluteValue > 1) {
                 log.w("too fast")
                 value++
-           /* } else if (direction.y < -1) {
-                log.w("new figure")
-                transitionRunning = false
-                value++*/
+                /* } else if (direction.y < -1) {
+                     log.w("new figure")
+                     transitionRunning = false
+                     value++*/
             } else if (!transitionRunning && direction != IntOffset.Zero) {
                 log.w("starting new animation")
                 transitionRunning = true
@@ -118,10 +118,14 @@ fun Board(
         }
 
         if (rotationPivot != null) {
-            LaunchedEffect(rotationPivot) {
-                degrees.animateTo(90f, tween(100))
+            if (animationEnabled) {
+                LaunchedEffect(rotationPivot) {
+                    degrees.animateTo(90f, tween(100))
+                    onRotationDone()
+                    degrees.snapTo(0f)
+                }
+            } else {
                 onRotationDone()
-                degrees.snapTo(0f)
             }
         }
 

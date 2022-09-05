@@ -4,6 +4,6 @@ import org.koin.core.context.startKoin
 
 fun initKoin(){
     startKoin {
-        modules(platformModule, gameModule)
+        modules(gameModule, platformModule)
     }
 }

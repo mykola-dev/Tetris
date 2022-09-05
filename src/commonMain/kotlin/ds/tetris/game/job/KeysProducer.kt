@@ -5,6 +5,7 @@
 package ds.tetris.game.job
 
 import ds.tetris.game.Direction
+import ds.tetris.util.log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.produce
@@ -18,6 +19,7 @@ private const val DEFAULT_START_DELAY: Long = 120
 class KeysProducer(override val coroutineContext: CoroutineContext) : CoroutineScope {
 
     operator fun invoke(direction: Direction?) {
+        log.v("key=$direction")
         inputChannel.trySend(direction)
     }
 

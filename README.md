@@ -12,7 +12,7 @@ The well known brick game written with Kotlin Multiplatform and Jetpack Compose 
 
 
 todo:  
-js keyboard support
-web/java sounds  
+js keyboard support  
 icon resources?  
-deploy with github actions
+deploy with github actions    
+lifecycle

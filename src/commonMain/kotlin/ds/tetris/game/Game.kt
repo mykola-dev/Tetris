@@ -25,9 +25,10 @@ import kotlin.random.Random
 private const val BASE_DELAY = 800L
 
 class Game(
+    scope: CoroutineScope,
     private val soundtrack: Soundtrack,
     private val log: Napier,
-) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+) : CoroutineScope by scope {
 
     private val board: Board = Board()
     private val state = MutableStateFlow(
@@ -41,7 +42,7 @@ class Game(
     private val score: Score = Score {
         val currLevel = state.value.level
         if (currLevel < level && currLevel != 0 && state.value.soundEnabled) {
-            soundtrack.play(Sound.LEVEL_UP)
+            soundtrack.levelUp()
         }
 
         state.update {
@@ -70,6 +71,7 @@ class Game(
             }
         }
 
+        soundtrack.init()
         start()
     }
 
@@ -88,6 +90,7 @@ class Game(
                 falling = select {
                     downKey.onReceive {
                         score.awardSpeedUp()
+                        log.v("triggered down")
                         currentFigure.tryMove(DOWN)
                     }
                     onTimeout(calculateDelay()) {
@@ -100,14 +103,14 @@ class Game(
 
             if (isGameOver()) {
                 state.update { it.copy(state = GameState.State.GAME_OVER) }
-                soundtrack.play(Sound.GAME_OVER)
+                soundtrack.gameOver()
                 gameLoop?.cancel()
             } else {
                 board.bakeFigure(currentFigure)
 
                 val lines = board.getFilledRowsIndices()
                 if (lines.isNotEmpty()) {
-                    soundtrack.play(Sound.WIPE, lines.size)
+                    soundtrack.wipe(lines.size)
                     score.awardLinesWipe(lines.size)
                     state.update { it.copy(wipedLines = lines) }
                 }
@@ -117,7 +120,7 @@ class Game(
     }
 
     fun togglePause() {
-        soundtrack.play(Sound.ROTATE)
+        soundtrack.pause()
         when (state.value.state) {
             GameState.State.PAUSED -> {
                 state.update { it.copy(state = GameState.State.STARTED) }
@@ -141,6 +144,7 @@ class Game(
 
     private fun start() {
         log.i("starting...")
+        score.reset()
         gameLoop?.cancel()
         board.clear()
         gameLoop = provideGameLoop()
@@ -157,17 +161,17 @@ class Game(
 
     fun onLeftPressed() {
         keysProducer(LEFT)
-        playMoveSound()
+        soundtrack.move()
     }
 
     fun onRightPressed() {
         keysProducer(RIGHT)
-        playMoveSound()
+        soundtrack.move()
     }
 
     fun onDownPressed() {
         keysProducer(DOWN)
-        playMoveSound()
+        soundtrack.move()
     }
 
     fun onUpPressed() {
@@ -179,7 +183,7 @@ class Game(
         val offset = Offset(x, y)
 
         state.update { it.copy(rotationPivot = offset) }
-        soundtrack.play(Sound.ROTATE)
+        soundtrack.rotate()
     }
 
     fun onKeyReleased() {
@@ -206,10 +210,6 @@ class Game(
                 figure = currentFigure.allBricks
             )
         }
-    }
-
-    private fun playMoveSound() {
-        soundtrack.play(Sound.MOVE, (Random.nextInt(4) + 1))
     }
 
     /**

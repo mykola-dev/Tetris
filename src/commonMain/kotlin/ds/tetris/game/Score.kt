@@ -37,8 +37,9 @@ class Score(private val callback: Score.() -> Unit) {
         callback()
     }
 
-    fun awardStart() {
-        level++
+    fun reset() {
+        level = 1
+        points = 0
         callback()
     }
 

@@ -97,7 +97,7 @@ fun TetrisScreen(
                     state.bricks,
                     state.figure,
                     state.wipedLines,
-                    state.rotationPivot,// todo
+                    state.rotationPivot,
                     state.areaDimensions,
                     state.state == GameState.State.GAME_OVER,
                     onWipingDone,

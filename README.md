@@ -1,10 +1,19 @@
 # Tetris
 
-Tetris game written in Kotlin for desktop (JavaFx) and mobile (Android) platforms.
+The well known brick game written with Kotlin Multiplatform and Jetpack Compose Multiplatform.
 
-All sounds were made with my old good Ibanez guitar :)
+### Target Platforms
+- Android
+- Desktop (JVM)
+- Web (Wasm)
+- IOS (in progress)
 
-![](https://github.com/deviant-studio/Tetris/blob/master/media/2017-11-08_18-23-37.gif)
+
+https://user-images.githubusercontent.com/1423947/188487203-d92ad397-8464-4107-85fe-f6244e3e6950.mp4
 
 
-![](https://github.com/deviant-studio/Tetris/blob/master/media/qemu-system-i386_2017-11-10_00-11-27.png)
+todo:  
+js keyboard support  
+icon resources  
+deploy with github actions    
+lifecycle awareness  

@@ -1,8 +1,5 @@
-# Created by .ignore support plugin (hsz.mobi)
+local.properties
+build
 .idea
 .gradle
-build
-*.iml
-local.properties
-android-debug.apk
-android-release-unsigned.apk
+kotlin-js-store

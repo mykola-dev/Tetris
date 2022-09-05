@@ -1,18 +1,19 @@
 # Tetris
 
-The well known brick game written with Kotlin Multiplatform and Jetpack Compose Multiplatform
+The well known brick game written with Kotlin Multiplatform and Jetpack Compose Multiplatform.
+
+### Target Platforms
+- Android
+- Desktop (JVM)
+- Web (Wasm)
+- IOS (in progress)
 
 
-
-
-![](https://github.com/deviant-studio/Tetris/blob/master/media/2017-11-08_18-23-37.gif)
-
-
-![](https://github.com/deviant-studio/Tetris/blob/master/media/qemu-system-i386_2017-11-10_00-11-27.png)
+https://user-images.githubusercontent.com/1423947/188487203-d92ad397-8464-4107-85fe-f6244e3e6950.mp4
 
 
 todo:  
 js keyboard support  
-icon resources?  
+icon resources  
 deploy with github actions    
-lifecycle
+lifecycle awareness  

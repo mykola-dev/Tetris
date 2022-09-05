@@ -59,7 +59,6 @@ kotlin {
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
                 implementation("io.insert-koin:koin-core:$koinVersion")
-                //implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")    doesn't work
                 implementation("io.github.aakira:napier:2.6.1")
                 implementation("com.soywiz.korlibs.korau:korau:2.2.0")
             }

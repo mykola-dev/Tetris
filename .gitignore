@@ -3,3 +3,4 @@ build
 .idea
 .gradle
 kotlin-js-store
+jdk-18

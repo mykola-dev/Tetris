@@ -30,6 +30,7 @@ repositories {
 }
 
 kotlin {
+
     targets.withType<KotlinNativeTarget> {
         binaries.all {
             // TODO: the current compose binary surprises LLVM, so disable checks for now.
@@ -100,6 +101,8 @@ kotlin {
 }
 
 android {
+    namespace = "ds.tetris.android"
+
     sourceSets {
         val main by getting
         main.kotlin.setSrcDirs(listOf("src/androidMain/kotlin"))
@@ -131,7 +134,10 @@ android {
         }
     }
 
-
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
 }
 
 compose {
@@ -149,6 +155,7 @@ compose {
                     upgradeUuid = "18159995-d967-4CD2-8885-77BFA97CFA9F"
                 }
             }
+            //javaHome = projectDir.path + "/jdk-18"
         }
     }
 

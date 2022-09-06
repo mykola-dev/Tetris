@@ -31,10 +31,14 @@ jobs:
         name: apk
         path: build/outputs/apk/release/tetris-mp-release.apk
 
-    - name: prepare web artifact
-      uses: actions/upload-pages-artifact@v1
+#    - name: prepare web artifact
+#      uses: actions/upload-pages-artifact@v1
+#      with:
+#        path: build/distributions
+    - name:  Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@v4
       with:
-        path: build/distributions
+        folder: build/distributions
 
 
   deploy:
@@ -43,13 +47,13 @@ jobs:
     permissions:
       id-token: write
       pages: write
-      contents: write
 
     steps:
     #- uses: actions/configure-pages@v2
 
-    - name: Deploy to GitHub Pages
-      uses: actions/deploy-pages@main
+
+#    - name: Deploy to GitHub Pages
+#      uses: actions/deploy-pages@main
 
     - name: Create Release
       uses: actions/create-release@v1

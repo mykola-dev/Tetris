@@ -1,5 +1,8 @@
 name: Deployment
 
+permissions:
+  contents: write
+
 on:
   push:
     #branches: [ "master" ]

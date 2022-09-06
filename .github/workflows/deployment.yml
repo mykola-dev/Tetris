@@ -37,12 +37,12 @@ jobs:
         path: build/distributions
 
 
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+      pages: write
 
     steps:
     - name: Deploy to GitHub Pages

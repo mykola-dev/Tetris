@@ -1,8 +1,5 @@
 name: Deployment
 
-permissions:
-  contents: write
-
 on:
   push:
     #branches: [ "master" ]
@@ -39,6 +36,15 @@ jobs:
       with:
         path: build/distributions
 
+
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
     - name: Deploy to GitHub Pages
       uses: actions/deploy-pages@main
 

@@ -43,8 +43,11 @@ jobs:
     permissions:
       id-token: write
       pages: write
+      contents: write
 
     steps:
+    #- uses: actions/configure-pages@v2
+
     - name: Deploy to GitHub Pages
       uses: actions/deploy-pages@main
 

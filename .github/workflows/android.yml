@@ -1,8 +1,8 @@
-name: Android CI
+name: Deployment
 
 on:
   push:
-    branches: [ "master" ]
+    #branches: [ "master" ]
     tags:
     - "v*"
   
@@ -13,10 +13,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: set up JDK 11
+    - name: set up JDK
       uses: actions/setup-java@v3
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
         cache: gradle
 
@@ -24,7 +24,34 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
-    - name: Deploy web app
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v1
+      with:
+        name: apk
+        path: build/outputs/apk/release/tetris-mp-release.apk
+
+    - name: prepare web artifact
       uses: actions/upload-pages-artifact@v1
       with:
         path: build/distributions
+
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@main
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_name: ${{ github.ref_name }}
+
+    - name: Upload Release APK
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: apk/tetris-mp-release.apk
+        asset_name: ${{ github.event.repository.name }}.apk
+        asset_content_type: application/zip

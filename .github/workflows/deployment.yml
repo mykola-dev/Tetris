@@ -23,7 +23,7 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew assembleRelease jsBrowserDistribution
 
     - name: Upload APK
       uses: actions/upload-artifact@v1
@@ -61,6 +61,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         release_name: ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
 
     - name: Upload Release APK
       uses: actions/upload-release-asset@v1.0.1

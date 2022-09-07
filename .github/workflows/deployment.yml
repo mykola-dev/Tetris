@@ -21,8 +21,10 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build assembleRelease jsBrowserDistribution
+    - name: Build Android
+      run: ./gradlew assembleRelease
+    - name: Build Web
+      run: ./gradlew jsBrowserDistribution  # should be called after initial build
 
     - name: Upload APK
       uses: actions/upload-artifact@v1

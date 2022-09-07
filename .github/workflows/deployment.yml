@@ -45,27 +45,34 @@ jobs:
       with:
         folder: artifacts/web
 
-    - name: Create Release
-      uses: actions/create-release@v1
+    - name: Release
+      uses: softprops/action-gh-release@v1
       with:
-        release_name: ${{ github.ref_name }}
-        tag_name: ${{ github.ref_name }}
+        files: |
+          apk
+          msi
 
-    - name: Upload Release APK
-      uses: actions/upload-release-asset@v1.1.3
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: apk/tetris-mp-release.apk
-        #asset_name: ${{ github.event.repository.name }}.apk
-        asset_content_type: application/zip
-
-    - name: Upload Msi
-      uses: actions/upload-release-asset@v1.1.3
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: msi
-        #asset_name: ${{ github.event.repository.name }}.apk
-        asset_content_type: application/zip
+#    - name: Create Release
+#      uses: actions/create-release@v1
+#      with:
+#        release_name: ${{ github.ref_name }}
+#        tag_name: ${{ github.ref_name }}
+#
+#    - name: Upload Release APK
+#      uses: actions/upload-release-asset@v1.1.3
+#      with:
+#        upload_url: ${{ steps.create_release.outputs.upload_url }}
+#        asset_path: apk/tetris-mp-release.apk
+#        #asset_name: ${{ github.event.repository.name }}.apk
+#        asset_content_type: application/zip
+#
+#    - name: Upload Msi
+#      uses: actions/upload-release-asset@v1.1.3
+#      with:
+#        upload_url: ${{ steps.create_release.outputs.upload_url }}
+#        asset_path: msi
+#        #asset_name: ${{ github.event.repository.name }}.apk
+#        asset_content_type: application/zip
 
 #  release:
 #    needs: build

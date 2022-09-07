@@ -6,61 +6,89 @@ on:
     - "v*"
   
 jobs:
-  build:
+  deploy:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: set up JDK
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
+#    - name: set up JDK
+#      uses: actions/setup-java@v3
+#      with:
+#        java-version: '17'
+#        distribution: 'temurin'
+#        cache: gradle
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build
-      run: ./gradlew build
-    - name: Build Android
-      run: ./gradlew assembleRelease
-    - name: Build Web
-      run: ./gradlew jsBrowserDistribution  # should be called after initial build
+#    - name: Grant execute permission for gradlew
+#      run: chmod +x gradlew
+#    - name: Build
+#      run: ./gradlew build
+#    - name: Build Android
+#      run: ./gradlew assembleRelease
+#    - name: Build Web
+#      run: ./gradlew jsBrowserDistribution  # should be called after initial build
 
     - name: Upload APK
       uses: actions/upload-artifact@v1
       with:
         name: apk
-        path: build/outputs/apk/release/tetris-mp-release.apk
+        path: artifacts/android/tetris-release.apk
+
+    - name: Upload Msi
+      uses: actions/upload-artifact@v1
+      with:
+        name: msi
+        path: artifacts/desktop/main/msi/TetrisMP-1.0.0.msi
 
     - name:  Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4.4.0
       with:
-        folder: build/distributions
+        folder: artifacts/web
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      pages: write
-
-    steps:
     - name: Create Release
       uses: actions/create-release@v1
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         release_name: ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
 
     - name: Upload Release APK
       uses: actions/upload-release-asset@v1.1.3
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: apk/tetris-mp-release.apk
-        asset_name: ${{ github.event.repository.name }}.apk
+        #asset_name: ${{ github.event.repository.name }}.apk
         asset_content_type: application/zip
+
+    - name: Upload Msi
+      uses: actions/upload-release-asset@v1.1.3
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: msi
+        #asset_name: ${{ github.event.repository.name }}.apk
+        asset_content_type: application/zip
+
+#  release:
+#    needs: build
+#    runs-on: ubuntu-latest
+#    permissions:
+#      id-token: write
+#      pages: write
+#
+#    steps:
+#    - name: Create Release
+#      uses: actions/create-release@v1
+##      env:
+##        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        release_name: ${{ github.ref_name }}
+#        tag_name: ${{ github.ref_name }}
+#
+#    - name: Upload Release APK
+#      uses: actions/upload-release-asset@v1.1.3
+##      env:
+##        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        upload_url: ${{ steps.create_release.outputs.upload_url }}
+#        asset_path: apk/tetris-mp-release.apk
+#        asset_name: ${{ github.event.repository.name }}.apk
+#        asset_content_type: application/zip

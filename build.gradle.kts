@@ -120,6 +120,8 @@ android {
     defaultConfig {
         minSdk = 26
         targetSdk = 32
+        versionCode = 1
+        versionName = "1.0"
     }
 
     signingConfigs {
@@ -160,7 +162,7 @@ compose {
             nativeDistributions {
                 outputBaseDir.set(projectDir.resolve("artifacts/desktop"))
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-                packageName = "Tetris MP"
+                packageName = "TetrisMP"
                 packageVersion = "1.0.0"
 
                 windows {

@@ -46,11 +46,16 @@ jobs:
         folder: artifacts/web
 
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: ncipollo/release-action@v1
       with:
-        files: |
-          apk
-          msi
+        artifacts: "apk,msi"
+
+#    - name: Release
+#      uses: softprops/action-gh-release@v1
+#      with:
+#        files: |
+#          apk
+#          msi
 
 #    - name: Create Release
 #      uses: actions/create-release@v1

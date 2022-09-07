@@ -2,7 +2,6 @@ name: Deployment
 
 on:
   push:
-    #branches: [ "master" ]
     tags:
     - "v*"
   
@@ -23,7 +22,7 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew assembleRelease jsBrowserDistribution
+      run: ./gradlew build assembleRelease jsBrowserDistribution
 
     - name: Upload APK
       uses: actions/upload-artifact@v1
@@ -31,17 +30,13 @@ jobs:
         name: apk
         path: build/outputs/apk/release/tetris-mp-release.apk
 
-#    - name: prepare web artifact
-#      uses: actions/upload-pages-artifact@v1
-#      with:
-#        path: build/distributions
     - name:  Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4.4.0
       with:
         folder: build/distributions
 
 
-  deploy:
+  release:
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -49,12 +44,6 @@ jobs:
       pages: write
 
     steps:
-    #- uses: actions/configure-pages@v2
-
-
-#    - name: Deploy to GitHub Pages
-#      uses: actions/deploy-pages@main
-
     - name: Create Release
       uses: actions/create-release@v1
       env:

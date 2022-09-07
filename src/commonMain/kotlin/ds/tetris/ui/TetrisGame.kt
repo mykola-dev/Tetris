@@ -58,7 +58,6 @@ fun TetrisScreen(
     onToggleAnimation: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
-    var keyPressed by remember { mutableStateOf(false) }
 
     Surface(
         Modifier
@@ -69,7 +68,6 @@ fun TetrisScreen(
                     //log.v("${it.key} ${it.type} ${it.utf16CodePoint} ${it.nativeKeyEvent}")
                     when (it.type) {
                         KeyEventType.KeyDown -> {
-                            keyPressed = true
                             when (it.key) {
                                 Key.DirectionLeft -> onLeftPress()
                                 Key.DirectionRight -> onRightPress()
@@ -78,7 +76,6 @@ fun TetrisScreen(
                             }
                         }
                         KeyEventType.KeyUp -> {
-                            keyPressed = false
                             onKeyRelease()
                         }
                     }

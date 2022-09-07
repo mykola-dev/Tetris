@@ -1,4 +1,4 @@
-@file:Suppress("UnstableApiUsage")
+@file:Suppress("UnstableApiUsage", "OPT_IN_USAGE")
 
 import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
@@ -43,7 +43,11 @@ kotlin {
     jvm("desktop")
 
     js(IR) {
-        browser()
+        browser {
+            distribution {
+                directory = projectDir.resolve("artifacts/web")
+            }
+        }
         binaries.executable()
     }
 
@@ -138,6 +142,14 @@ android {
         abortOnError = false
         checkReleaseBuilds = false
     }
+
+    buildOutputs.all {
+        (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).run {
+            if (name == "release") {
+                outputFileName = "../../../../artifacts/android/tetris-${name}.apk"
+            }
+        }
+    }
 }
 
 compose {
@@ -146,6 +158,7 @@ compose {
             mainClass = "Main_desktopKt"
 
             nativeDistributions {
+                outputBaseDir.set(projectDir.resolve("artifacts/desktop"))
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
                 packageName = "Tetris MP"
                 packageVersion = "1.0.0"
@@ -155,7 +168,7 @@ compose {
                     upgradeUuid = "18159995-d967-4CD2-8885-77BFA97CFA9F"
                 }
             }
-            //javaHome = projectDir.path + "/jdk-18"
+            javaHome = projectDir.resolve("jdk-18").toString()
         }
     }
 
@@ -163,9 +176,8 @@ compose {
         useAndroidX = true
         androidxVersion = "1.2.0"
     }*/
-
     experimental {
-        web.application {}
+        web.application { }
     }
 }
 

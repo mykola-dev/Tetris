@@ -48,7 +48,7 @@ jobs:
     - name: Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "apk,msi"
+        artifacts: "apk/tetris-release.apk, msi/TetrisMP-1.0.0.msi"
 
 #    - name: Release
 #      uses: softprops/action-gh-release@v1

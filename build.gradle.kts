@@ -17,7 +17,7 @@ buildscript {
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
-    id("com.android.application") version "7.4.0-alpha10"
+    id("com.android.application") version "7.2.2"
 }
 
 version = "1.0"
@@ -170,7 +170,6 @@ compose {
                     upgradeUuid = "18159995-d967-4CD2-8885-77BFA97CFA9F"
                 }
             }
-            javaHome = projectDir.resolve("jdk-18").toString()
         }
     }
 
